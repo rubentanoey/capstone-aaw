@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  orders:
+    container_name: orders
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - TENANT_ID=47dd6b24-0b23-46b0-a662-776158d089ba
+      - PRODUCT_SERVICE_URL=http://products:8002/api
+      - JWT_SECRET=auth_ms_jwt_secret
+      - DB_HOST=db-orders
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=orders
+    depends_on:
+      - db-orders
+    networks:
+      - marketplace_network
+
+  db-orders:
+    image: postgres:latest
+    container_name: db-orders
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - marketplace_network
+
+networks:
+  marketplace_network:
+    external: true
+
+volumes:
+  postgres_data:

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: products-config
+  namespace: marketplace
+data:
+  TENANT_ID: "47dd6b24-0b23-46b0-a662-776158d089ba"
+  PORT: "8002"
+  AUTH_SERVICE_URL: "http://auth.marketplace.svc.cluster.local:8000/api"
+  TENANT_SERVICE_URL: "http://tenant.marketplace.svc.cluster.local:8003/api"

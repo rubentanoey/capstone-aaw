@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1739970886026,
+      "tag": "0000_crazy_senator_kelly",
+      "breakpoints": true
+    }
+  ]
+}

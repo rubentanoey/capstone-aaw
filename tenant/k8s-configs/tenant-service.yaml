@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tenant
+  namespace: marketplace
+spec:
+  selector:
+    app: tenant
+  ports:
+    - port: 8003
+      targetPort: 8003
+      nodePort: 30003
+  type: NodePort

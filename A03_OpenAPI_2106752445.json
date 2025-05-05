@@ -1,0 +1,1517 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Marketplace API",
+    "description": "API for authentication, tenant management, and product services",
+    "version": "1.0.0",
+    "contact": {
+      "email": "admin@example.com"
+    }
+  },
+  "host": "localhost:8000",
+  "basePath": "/api",
+  "schemes": ["http", "https"],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication operations"
+    },
+    {
+      "name": "tenant",
+      "description": "Tenant management operations"
+    },
+    {
+      "name": "product",
+      "description": "Product management operations"
+    },
+    {
+      "name": "category",
+      "description": "Product category operations"
+    },
+    {
+      "name": "cart",
+      "description": "Cart management operations"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Register a new user",
+        "description": "Creates a new user account with the provided details",
+        "operationId": "registerUser",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "user",
+            "description": "User registration information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "schema": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "User login",
+        "description": "Authenticates a user and returns a JWT token",
+        "operationId": "loginUser",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "credentials",
+            "description": "User login credentials",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/TokenResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "User not found or invalid password",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-token": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Verify user token",
+        "description": "Validates a JWT token and returns the associated user information",
+        "operationId": "verifyToken",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "tokenPayload",
+            "description": "Token to verify",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "schema": {
+              "$ref": "#/definitions/UserVerificationResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-admin-token": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Verify admin token",
+        "description": "Validates an admin JWT token and returns the associated user information",
+        "operationId": "verifyAdminToken",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "tokenPayload",
+            "description": "Admin token to verify",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin token is valid",
+            "schema": {
+              "$ref": "#/definitions/UserVerificationResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/tenant/{tenant_id}": {
+      "get": {
+        "tags": ["tenant"],
+        "summary": "Get tenant details",
+        "description": "Retrieves details of a specific tenant by ID",
+        "operationId": "getTenant",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "description": "ID of tenant to retrieve",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant details retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/TenantResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tenant not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8003"
+      }
+    },
+    "/tenant/{old_tenant_id}": {
+      "put": {
+        "tags": ["tenant"],
+        "summary": "Edit tenant details",
+        "description": "Updates an existing tenant's information",
+        "operationId": "editTenant",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "old_tenant_id",
+            "in": "path",
+            "description": "Current ID of tenant to update",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "tenantUpdate",
+            "description": "Tenant details to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EditTenantRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant updated successfully",
+            "schema": {
+              "$ref": "#/definitions/TenantResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tenant not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8003"
+      }
+    },
+    "/tenant": {
+      "post": {
+        "tags": ["tenant"],
+        "summary": "Create a new tenant",
+        "description": "Creates a new tenant with the authenticated user as owner",
+        "operationId": "createTenant",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "tenantInfo",
+            "description": "Tenant details to create",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateTenantRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Tenant created successfully",
+            "schema": {
+              "$ref": "#/definitions/TenantResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8003"
+      },
+      "delete": {
+        "tags": ["tenant"],
+        "summary": "Delete a tenant",
+        "description": "Deletes an existing tenant (only by the owner)",
+        "operationId": "deleteTenant",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "tenantInfo",
+            "description": "Tenant ID to delete",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteTenantRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/TenantResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tenant not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8003"
+      }
+    },
+    "/product": {
+      "get": {
+        "tags": ["product"],
+        "summary": "Get all products",
+        "description": "Retrieves a list of all products",
+        "operationId": "getAllProducts",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductListResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "post": {
+        "tags": ["product"],
+        "summary": "Create a new product",
+        "description": "Creates a new product with the provided details",
+        "operationId": "createProduct",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "productInfo",
+            "description": "Product details to create",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateProductRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      }
+    },
+    "/product/{id}": {
+      "get": {
+        "tags": ["product"],
+        "summary": "Get product by ID",
+        "description": "Retrieves details of a specific product by ID",
+        "operationId": "getProductById",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of product to retrieve",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product details retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductDetailResponse"
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "put": {
+        "tags": ["product"],
+        "summary": "Update product",
+        "description": "Updates an existing product's information",
+        "operationId": "updateProduct",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of product to update",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "productUpdate",
+            "description": "Product details to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateProductRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "delete": {
+        "tags": ["product"],
+        "summary": "Delete product",
+        "description": "Deletes an existing product",
+        "operationId": "deleteProduct",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of product to delete",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      }
+    },
+    "/product/many": {
+      "post": {
+        "tags": ["product"],
+        "summary": "Get multiple products by IDs",
+        "description": "Retrieves multiple products by their IDs",
+        "operationId": "getManyProductsById",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "productIds",
+            "description": "List of product IDs to retrieve",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ManyProductIdsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductListResponseRaw"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      }
+    },
+    "/product/category": {
+      "get": {
+        "tags": ["category"],
+        "summary": "Get all categories",
+        "description": "Retrieves a list of all product categories",
+        "operationId": "getAllCategories",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Categories retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoryListResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "post": {
+        "tags": ["category"],
+        "summary": "Create a new category",
+        "description": "Creates a new product category",
+        "operationId": "createCategory",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "categoryInfo",
+            "description": "Category details to create",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateCategoryRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Category created successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoryResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      }
+    },
+    "/product/category/{category_id}": {
+      "get": {
+        "tags": ["product"],
+        "summary": "Get products by category",
+        "description": "Retrieves all products in a specific category",
+        "operationId": "getProductsByCategory",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "description": "ID of category to filter products by",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ProductListResponse"
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "put": {
+        "tags": ["category"],
+        "summary": "Update category",
+        "description": "Updates an existing category",
+        "operationId": "updateCategory",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "description": "ID of category to update",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "categoryUpdate",
+            "description": "Category details to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateCategoryRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category updated successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoryResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      },
+      "delete": {
+        "tags": ["category"],
+        "summary": "Delete category",
+        "description": "Deletes an existing category",
+        "operationId": "deleteCategory",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "description": "ID of category to delete",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoryResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-host-override": "localhost:8002"
+      }
+    }
+  },
+  "definitions": {
+    "RegisterRequest": {
+      "type": "object",
+      "required": [
+        "username",
+        "email",
+        "password",
+        "full_name",
+        "address",
+        "phone_number"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "johndoe"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "john.doe@example.com"
+        },
+        "password": {
+          "type": "string",
+          "format": "password",
+          "description": "Must be at least 8 characters with at least one lowercase letter, one uppercase letter, and one number",
+          "example": "Passw0rd123"
+        },
+        "full_name": {
+          "type": "string",
+          "example": "John Doe"
+        },
+        "address": {
+          "type": "string",
+          "example": "123 Main St, Anytown, USA"
+        },
+        "phone_number": {
+          "type": "string",
+          "example": "5551234567"
+        }
+      }
+    },
+    "LoginRequest": {
+      "type": "object",
+      "required": ["username", "password"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "johndoe"
+        },
+        "password": {
+          "type": "string",
+          "format": "password",
+          "example": "Passw0rd123"
+        }
+      }
+    },
+    "TokenRequest": {
+      "type": "object",
+      "required": ["token"],
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "JWT token",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+    },
+    "UserResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "example": "123e4567-e89b-12d3-a456-426614174000"
+              },
+              "username": {
+                "type": "string",
+                "example": "johndoe"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "john.doe@example.com"
+              },
+              "full_name": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "address": {
+                "type": "string",
+                "example": "123 Main St, Anytown, USA"
+              },
+              "phone_number": {
+                "type": "string",
+                "example": "5551234567"
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 201
+        }
+      }
+    },
+    "TokenResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "JWT token",
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "UserVerificationResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "username": {
+                  "type": "string",
+                  "example": "johndoe"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "example": "john.doe@example.com"
+                },
+                "full_name": {
+                  "type": "string",
+                  "example": "John Doe"
+                },
+                "address": {
+                  "type": "string",
+                  "example": "123 Main St, Anytown, USA"
+                },
+                "phone_number": {
+                  "type": "string",
+                  "example": "5551234567"
+                }
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "CreateTenantRequest": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "My Company"
+        }
+      }
+    },
+    "EditTenantRequest": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "owner_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "name": {
+          "type": "string",
+          "example": "Updated Company Name"
+        }
+      }
+    },
+    "DeleteTenantRequest": {
+      "type": "object",
+      "required": ["tenant_id"],
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        }
+      }
+    },
+    "TenantResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "tenants": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "owner_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            },
+            "tenantDetails": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "tenant_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "My Company"
+                }
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "CreateProductRequest": {
+      "type": "object",
+      "required": ["name", "price", "quantity_available"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Premium Widget"
+        },
+        "description": {
+          "type": "string",
+          "example": "A high-quality widget for all your needs"
+        },
+        "price": {
+          "type": "number",
+          "format": "float",
+          "example": 29.99
+        },
+        "quantity_available": {
+          "type": "integer",
+          "example": 100
+        },
+        "category_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        }
+      }
+    },
+    "UpdateProductRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Updated Widget"
+        },
+        "description": {
+          "type": "string",
+          "example": "An improved widget with new features"
+        },
+        "price": {
+          "type": "number",
+          "format": "float",
+          "example": 39.99
+        },
+        "quantity_available": {
+          "type": "integer",
+          "example": 75
+        },
+        "category_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        }
+      }
+    },
+    "CreateCategoryRequest": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Electronics"
+        }
+      }
+    },
+    "UpdateCategoryRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Home Electronics"
+        }
+      }
+    },
+    "ManyProductIdsRequest": {
+      "type": "object",
+      "required": ["productIds"],
+      "properties": {
+        "productIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174000",
+            "223e4567-e89b-12d3-a456-426614174000"
+          ]
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "name": {
+          "type": "string",
+          "example": "Premium Widget"
+        },
+        "description": {
+          "type": "string",
+          "example": "A high-quality widget for all your needs"
+        },
+        "price": {
+          "type": "number",
+          "format": "float",
+          "example": 29.99
+        },
+        "quantity_available": {
+          "type": "integer",
+          "example": 100
+        },
+        "category_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        }
+      }
+    },
+    "Category": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "name": {
+          "type": "string",
+          "example": "Electronics"
+        }
+      }
+    },
+    "ProductResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "example": "123e4567-e89b-12d3-a456-426614174000"
+            },
+            "name": {
+              "type": "string",
+              "example": "Premium Widget"
+            },
+            "description": {
+              "type": "string",
+              "example": "A high-quality widget for all your needs"
+            },
+            "price": {
+              "type": "number",
+              "format": "float",
+              "example": 29.99
+            },
+            "quantity_available": {
+              "type": "integer",
+              "example": 100
+            },
+            "category_id": {
+              "type": "string",
+              "format": "uuid",
+              "example": "123e4567-e89b-12d3-a456-426614174000"
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 201
+        }
+      }
+    },
+    "ProductListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "products": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Product"
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "ProductListResponseRaw": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Product"
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "ProductDetailResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/Product"
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "CategoryResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "example": "123e4567-e89b-12d3-a456-426614174000"
+            },
+            "name": {
+              "type": "string",
+              "example": "Electronics"
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 201
+        }
+      }
+    },
+    "CategoryListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Category"
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "example": 200
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Error description",
+              "example": "Resource not found"
+            }
+          }
+        },
+        "status": {
+          "type": "integer",
+          "description": "HTTP status code",
+          "example": 404
+        }
+      }
+    }
+  }
+}

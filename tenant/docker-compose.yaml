@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  tenant:
+    container_name: tenant
+    build: .
+    ports:
+      - "8003:8003"
+    environment:
+      - TENANT_ID=47dd6b24-0b23-46b0-a662-776158d089ba
+      - AUTH_SERVICE_URL=http://auth:8000/api/auth
+      - JWT_SECRET=auth_ms_jwt_secret
+      - DB_HOST=db-tenant
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=tenant
+    depends_on:
+      - db-tenant
+    networks:
+      - marketplace_network
+
+  db-tenant:
+    image: postgres:latest
+    container_name: db-tenant
+    environment:
+      POSTGRES_DB: tenant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - marketplace_network
+
+networks:
+  marketplace_network:
+    external: true
+
+volumes:
+  postgres_data:

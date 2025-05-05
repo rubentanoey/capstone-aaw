@@ -1,0 +1,14 @@
+server:
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+  service:
+    type: NodePort
+alertmanager:
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+extraScrapeConfigs: |
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["3.89.207.188:30001", "3.89.207.188:30002", "3.89.207.188:30003"]

@@ -1,6 +1,27 @@
 import { Request, Response, NextFunction } from "express";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { UnauthenticatedResponse } from "../commons/patterns/exceptions";
+import { ServiceBreaker } from "../commons/patterns/circuit-breaker";
+
+const verifyToken = async (token: string): Promise<AxiosResponse<any>> => {
+  const authServiceUrl = process.env.AUTH_SERVICE_URL;
+  if (!authServiceUrl) {
+    throw new Error("Authentication service URL not configured");
+  }
+
+  return await axios.post(`${authServiceUrl}/auth/verify-admin-token`, {
+    token,
+  });
+};
+
+const authServiceBreaker = new ServiceBreaker(verifyToken, "AuthService", {
+  timeout: 3000,
+  errorThresholdPercentage: 50,
+});
+
+authServiceBreaker.fallback(() => {
+  throw new Error("Authentication service unavailable");
+});
 
 export const verifyJWTTenant = async (
   req: Request,
@@ -20,23 +41,25 @@ export const verifyJWTTenant = async (
         .send({ message: "Authentication service URL not configured" });
     }
 
-    const response = await axios.post(
-      `${authServiceUrl}/auth/verify-admin-token`,
-      {
-        token,
+    try {
+      const response = await authServiceBreaker.fire(token);
+
+      console.log("response", response);
+
+      if (response.status !== 200 || !response.data) {
+        return res.status(401).send({ message: "Invalid token" });
       }
-    );
 
-    console.log("response", response);
+      const verifiedPayload = response.data;
 
-    if (response.status !== 200 || !response.data) {
-      return res.status(401).send({ message: "Invalid token" });
+      req.body.user = verifiedPayload.user;
+      next();
+    } catch (breakerError: any) {
+      console.error("Circuit breaker error:", breakerError.message);
+      return res
+        .status(503)
+        .send({ message: breakerError.message || "Service unavailable" });
     }
-
-    const verifiedPayload = response.data;
-
-    req.body.user = verifiedPayload.user;
-    next();
   } catch (error) {
     console.error("Error in verifyJWTTenant:", error);
     return res

@@ -4,18 +4,34 @@ import {
   InternalServerErrorResponse,
   NotFoundResponse,
 } from "@src/commons/patterns";
+import { ServiceBreaker } from "@src/commons/patterns/circuit-breaker";
 import { createOrder } from "@src/order/dao/createOrder.dao";
 import axios, { AxiosResponse } from "axios";
 import { User, Product } from "@src/types";
 
-type ShippingProvider = "JNE" | "TIKI" | "SICEPAT" | "GOSEND" | "GRAB_EXPRESS";
-const VALID_SHIPPING_PROVIDERS = [
-  "JNE",
-  "TIKI",
-  "SICEPAT",
-  "GOSEND",
-  "GRAB_EXPRESS",
-];
+const fetchProducts = async (productIds: string[]): Promise<AxiosResponse<Product[], any>> => {
+  const response = await axios.post(
+    `${process.env.PRODUCT_SERVICE_URL}/product/many`,
+    { productIds },
+  );
+  if (response.status !== 200) {
+    throw new Error(`Failed to get products: Status ${response.status}`);
+  }
+  return response;
+};
+
+const productServiceBreaker = new ServiceBreaker(
+  fetchProducts,
+  'ProductService',
+  {
+    timeout: 4000,
+    errorThresholdPercentage: 50
+  }
+);
+
+productServiceBreaker.fallback(() => {
+  throw new Error('Product service is currently unavailable');
+});
 
 export const placeOrderService = async (
   user: User,
@@ -29,51 +45,56 @@ export const placeOrderService = async (
       ).generate();
     }
 
-    if (!user.id) {
-      return new NotFoundResponse("User id not found").generate();
-    }
-
-    if (!VALID_SHIPPING_PROVIDERS.includes(shipping_provider)) {
+    if (
+      !["JNE", "TIKI", "SICEPAT", "GOSEND", "GRAB_EXPRESS"].includes(
+        shipping_provider
+      )
+    ) {
       return new NotFoundResponse("Shipping provider not found").generate();
     }
 
-    const cartItems = await getAllCartItems(SERVER_TENANT_ID, user.id);
-    if (!cartItems || cartItems.length === 0) {
-      return new BadRequestResponse("Cart is empty").generate();
+    if (!user.id) {
+      return new InternalServerErrorResponse("User id not found").generate();
     }
 
+    // get the cart items
+    const cartItems = await getAllCartItems(SERVER_TENANT_ID, user.id);
+
+    // get the product datas
     const productIds = cartItems.map((item) => item.product_id);
-
+    if (productIds.length === 0) {
+      return new BadRequestResponse("Cart is empty").generate();
+    }
+    
     try {
-      const products: AxiosResponse<Product[], any> = await axios.post(
-        `${process.env.PRODUCT_SERVICE_URL}/product/many`,
-        { productIds }
-      );
-
-      if (products.status !== 200 || !products.data) {
-        return new InternalServerErrorResponse(
-          "Failed to get products"
-        ).generate();
-      }
-
+      const products = await productServiceBreaker.fire(productIds);
+      
+      // create order
       const order = await createOrder(
         SERVER_TENANT_ID,
         user.id,
         cartItems,
         products.data,
-        shipping_provider as ShippingProvider
+        shipping_provider as
+          | "JNE"
+          | "TIKI"
+          | "SICEPAT"
+          | "GOSEND"
+          | "GRAB_EXPRESS"
       );
 
       return {
         data: order,
         status: 201,
       };
-    } catch (apiError) {
+    } catch (breakerError) {
+      console.error('Product service circuit breaker error:', breakerError);
       return new InternalServerErrorResponse(
-        "Failed to communicate with product service"
+        "Product service unavailable, please try again later"
       ).generate();
     }
   } catch (err: any) {
+    console.error(err);
     return new InternalServerErrorResponse(err).generate();
   }
 };

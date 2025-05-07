@@ -2,6 +2,7 @@ import {
   BadRequestResponse,
   InternalServerErrorResponse,
 } from "@src/commons/patterns";
+import { RedisService } from "@src/commons/cache/redis";
 import { getAllUserWishlist } from "@src/wishlist/dao/getAllUserWishlist.dao";
 import { User } from "@src/types";
 
@@ -18,7 +19,19 @@ export const getAllUserWishlistService = async (user: User) => {
       return new BadRequestResponse("User ID is required").generate();
     }
 
+    const redisService = RedisService.getInstance();
+
+    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}`;
+    const cachedWishlists = await redisService.get(cacheKey);
+    if (cachedWishlists) {
+      return {
+        data: cachedWishlists,
+        status: 200,
+      };
+    }
+
     const wishlists = await getAllUserWishlist(SERVER_TENANT_ID, user.id);
+    await redisService.set(cacheKey, wishlists, 60 * 60 * 24);
 
     return {
       data: wishlists,

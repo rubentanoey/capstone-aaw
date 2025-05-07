@@ -4,6 +4,8 @@ import {
   NotFoundResponse,
 } from "@src/commons/patterns";
 import { editProductById } from "@src/product/dao/editProductById.dao";
+import { RedisService } from "@src/commons/cache/redis";
+import { getProductById } from "@src/product/dao/getProductById.dao";
 
 export const editProductService = async (
   id: string,
@@ -37,6 +39,18 @@ export const editProductService = async (
       ).generate();
     }
 
+    let oldCategoryId;
+    if (category_id) {
+      try {
+        const existingProduct = await getProductById(SERVER_TENANT_ID, id);
+        if (existingProduct) {
+          oldCategoryId = existingProduct.category_id;
+        }
+      } catch (error) {
+        console.error("Error fetching existing product:", error);
+      }
+    }
+
     const product = await editProductById(SERVER_TENANT_ID, id, {
       name,
       description,
@@ -47,6 +61,25 @@ export const editProductService = async (
 
     if (!product) {
       return new NotFoundResponse("Product not found").generate();
+    }
+
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`product:${SERVER_TENANT_ID}:${id}`);
+      await redisService.del(`products:${SERVER_TENANT_ID}:all`);
+      if (category_id) {
+        await redisService.del(
+          `products:${SERVER_TENANT_ID}:category:${category_id}`
+        );
+      }
+
+      if (oldCategoryId && oldCategoryId !== category_id) {
+        await redisService.del(
+          `products:${SERVER_TENANT_ID}:category:${oldCategoryId}`
+        );
+      }
+    } catch (cacheError) {
+      console.error("Error invalidating product caches:", cacheError);
     }
 
     return {

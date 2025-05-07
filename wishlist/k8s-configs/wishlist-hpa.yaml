@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: products-hpa
+  name: wishlist-hpa
   namespace: marketplace
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: products-deployment
+    name: wishlist-deployment
   minReplicas: 1
   maxReplicas: 6
   metrics:

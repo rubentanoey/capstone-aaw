@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: auth
-          image: rubentanoey/marketplace-authentication:v1
+          image: rubentanoey/marketplace-authentication:latest
+          imagePullPolicy: Always 
           ports:
             - containerPort: 8000
           env:

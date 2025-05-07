@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: wishlist
-          image: rubentanoey/marketplace-wishlist:v1
+          image: rubentanoey/marketplace-wishlist:latest
           ports:
             - containerPort: 8004
           env:

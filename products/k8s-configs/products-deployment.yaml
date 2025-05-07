@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: products
-          image: rubentanoey/marketplace-products:v1
+          image: rubentanoey/marketplace-products:latest
           ports:
             - containerPort: 8002
           env:

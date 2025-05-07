@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tenant
-          image: rubentanoey/marketplace-tenant:v1
+          image: rubentanoey/marketplace-tenant:latest
           ports:
             - containerPort: 8003
           env:

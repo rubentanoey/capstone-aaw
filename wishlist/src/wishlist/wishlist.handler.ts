@@ -6,7 +6,16 @@ export const getAllUserWishlistHandler = async (
   res: Response
 ) => {
   const { user } = req.body;
-  const response = await Service.getAllUserWishlistService(user);
+  const { page_number, page_size } = req.query;
+
+  const pageNumber = parseInt(page_number as string);
+  const pageSize = parseInt(page_size as string);
+
+  const response = await Service.getAllUserWishlistService(
+    user,
+    pageNumber,
+    pageSize
+  );
   return res.status(response.status).send(response.data);
 };
 

@@ -4,3 +4,4 @@ export * from "./deleteWishlist.schema";
 export * from "./getWishlistById.schema";
 export * from "./removeProductFromWishlist.schema";
 export * from "./updateWishlist.schema";
+export * from "./getAllUserWishlist.schema";

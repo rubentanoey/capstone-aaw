@@ -1,4 +1,5 @@
 import { NewProduct } from "@db/schema/products";
+import { RedisService } from "@src/commons/cache";
 import { InternalServerErrorResponse } from "@src/commons/patterns";
 import { createNewProduct } from "@src/product/dao/createNewProduct.dao";
 
@@ -30,6 +31,13 @@ export const createProductService = async (
     }
 
     const newProduct = await createNewProduct(productData);
+
+    const redisService = RedisService.getInstance();
+    try {
+      redisService.incr(`products:${SERVER_TENANT_ID}:version`);
+    } catch (err) {
+      console.error("Error while invalidation cache key", err);
+    }
 
     return {
       data: newProduct,

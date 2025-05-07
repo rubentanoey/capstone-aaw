@@ -1,4 +1,5 @@
 import { NewCategory } from "@db/schema/categories";
+import { RedisService } from "@src/commons/cache";
 import { InternalServerErrorResponse } from "@src/commons/patterns";
 import { createNewCategory } from "@src/product/dao/createNewCategory.dao";
 
@@ -17,6 +18,13 @@ export const createCategoryService = async (name: string) => {
     };
 
     const newCategory = await createNewCategory(categoryData);
+
+    const redisService = RedisService.getInstance();
+    try {
+      redisService.incr(`categories:${SERVER_TENANT_ID}:version`);
+    } catch (err) {
+      console.error("Error while invalidation cache key", err);
+    }
 
     return {
       data: newCategory,

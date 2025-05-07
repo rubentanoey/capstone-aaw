@@ -2,7 +2,10 @@ import { InternalServerErrorResponse } from "@src/commons/patterns";
 import { RedisService } from "@src/commons/cache/redis";
 import { getAllCategoriesByTenantId } from "@src/product/dao/getAllCategoriesByTenantId.dao";
 
-export const getAllCategoriesService = async () => {
+export const getAllCategoriesService = async (
+  pageNumber: number,
+  pageSize: number
+) => {
   try {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
@@ -11,8 +14,14 @@ export const getAllCategoriesService = async () => {
       ).generate();
     }
 
+    const limit = pageSize;
+    const offset = (pageNumber - 1) * pageSize;
+
     const redisService = RedisService.getInstance();
-    const cacheKey = `categories:${SERVER_TENANT_ID}`;
+
+    const version =
+      (await redisService.get(`categories:${SERVER_TENANT_ID}:version`)) || 1;
+    const cacheKey = `categories:${SERVER_TENANT_ID}:version-${version}:limit-${limit}:offset-${offset}`;
 
     try {
       const cachedCategories = await redisService.get(cacheKey);
@@ -28,7 +37,11 @@ export const getAllCategoriesService = async () => {
       console.error("Error retrieving from cache:", cacheError);
     }
 
-    const categories = await getAllCategoriesByTenantId(SERVER_TENANT_ID);
+    const categories = await getAllCategoriesByTenantId(
+      SERVER_TENANT_ID,
+      limit,
+      offset
+    );
     try {
       await redisService.set(cacheKey, categories, 60 * 60 * 24);
     } catch (cacheError) {

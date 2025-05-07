@@ -5,7 +5,11 @@ import {
 import { getAllCartItems } from "../dao/getAllCartItems.dao";
 import { User } from "@src/types";
 
-export const getAllCartItemsService = async (user: User) => {
+export const getAllCartItemsService = async (
+  user: User,
+  page_number: string,
+  page_size: string
+) => {
   try {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
@@ -18,7 +22,15 @@ export const getAllCartItemsService = async (user: User) => {
       return new NotFoundResponse("User id not found").generate();
     }
 
-    const items = await getAllCartItems(SERVER_TENANT_ID, user.id);
+    const limit = parseInt(page_size);
+    const offset = (parseInt(page_number) - 1) * parseInt(page_size);
+
+    const items = await getAllCartItems(
+      SERVER_TENANT_ID,
+      user.id,
+      limit,
+      offset
+    );
 
     return {
       data: items,

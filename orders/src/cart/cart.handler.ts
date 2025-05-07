@@ -3,7 +3,12 @@ import * as Service from "./services";
 
 export const getAllCartItemsHandler = async (req: Request, res: Response) => {
   const { user } = req.body;
-  const response = await Service.getAllCartItemsService(user);
+  const { page_number, page_size } = req.params;
+  const response = await Service.getAllCartItemsService(
+    user,
+    page_number,
+    page_size
+  );
   return res.status(response.status).send(response.data);
 };
 

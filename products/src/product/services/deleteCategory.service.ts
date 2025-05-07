@@ -29,7 +29,8 @@ export const deleteCategoryService = async (category_id: string) => {
       await redisService.del(
         `products:${SERVER_TENANT_ID}:category:${category_id}`
       );
-      await redisService.del(`products:${SERVER_TENANT_ID}:all`);
+      // await redisService.del(`products:${SERVER_TENANT_ID}:all`);
+      await redisService.incr(`products:${SERVER_TENANT_ID}:version`);
     } catch (cacheError) {
       console.error("Error invalidating category caches:", cacheError);
     }

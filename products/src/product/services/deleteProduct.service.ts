@@ -36,8 +36,9 @@ export const deleteProductService = async (id: string) => {
 
     const redisService = RedisService.getInstance();
     try {
+      await redisService.incr(`products:${SERVER_TENANT_ID}:version`);
+      // await redisService.del(`products:${SERVER_TENANT_ID}:all`);
       await redisService.del(`product:${SERVER_TENANT_ID}:${id}`);
-      await redisService.del(`products:${SERVER_TENANT_ID}:all`);
 
       if (categoryId) {
         await redisService.del(

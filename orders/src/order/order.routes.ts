@@ -5,7 +5,12 @@ import * as Handler from "./order.handler";
 
 const router = express.Router();
 
-router.get("", verifyJWT, Handler.getAllOrdersHandler);
+router.get(
+  "",
+  verifyJWT,
+  validate(Validation.getAllOrdersSchema),
+  Handler.getAllOrdersHandler
+);
 router.get(
   "/:orderId",
   verifyJWT,

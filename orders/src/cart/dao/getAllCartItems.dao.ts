@@ -2,7 +2,12 @@ import { db } from "@src/db";
 import { eq, and } from "drizzle-orm";
 import * as schema from "@db/schema/cart";
 
-export const getAllCartItems = async (tenant_id: string, user_id: string) => {
+export const getAllCartItems = async (
+  tenant_id: string,
+  user_id: string,
+  limit: number,
+  offset: number
+) => {
   const result = await db
     .select()
     .from(schema.cart)
@@ -11,6 +16,8 @@ export const getAllCartItems = async (tenant_id: string, user_id: string) => {
         eq(schema.cart.tenant_id, tenant_id),
         eq(schema.cart.user_id, user_id)
       )
-    );
+    )
+    .limit(limit)
+    .offset(offset);
   return result;
 };

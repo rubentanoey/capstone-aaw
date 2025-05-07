@@ -5,8 +5,16 @@ import * as Handler from "./product.handler";
 
 const router = express.Router();
 
-router.get("", Handler.getAllProductsHandler);
-router.get("/category", Handler.getAllCategoryHandler);
+router.get(
+  "",
+  validate(Validation.getAllProductSchema),
+  Handler.getAllProductsHandler
+);
+router.get(
+  "/category",
+  validate(Validation.getAllCategorySchema),
+  Handler.getAllCategoryHandler
+);
 router.get(
   "/:id",
   validate(Validation.getProductByIdSchema),

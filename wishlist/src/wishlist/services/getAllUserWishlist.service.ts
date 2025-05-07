@@ -6,7 +6,11 @@ import { RedisService } from "@src/commons/cache/redis";
 import { getAllUserWishlist } from "@src/wishlist/dao/getAllUserWishlist.dao";
 import { User } from "@src/types";
 
-export const getAllUserWishlistService = async (user: User) => {
+export const getAllUserWishlistService = async (
+  user: User,
+  page_number: number,
+  page_size: number
+) => {
   try {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
@@ -19,9 +23,16 @@ export const getAllUserWishlistService = async (user: User) => {
       return new BadRequestResponse("User ID is required").generate();
     }
 
+    const limit = page_size;
+    const offset = (page_number - 1) * page_size;
+
     const redisService = RedisService.getInstance();
 
-    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}`;
+    const version =
+      redisService.get(
+        `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
+      ) || 1;
+    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version-${version}:limit-${limit}:offset-${offset}`;
     const cachedWishlists = await redisService.get(cacheKey);
     if (cachedWishlists) {
       return {
@@ -30,7 +41,12 @@ export const getAllUserWishlistService = async (user: User) => {
       };
     }
 
-    const wishlists = await getAllUserWishlist(SERVER_TENANT_ID, user.id);
+    const wishlists = await getAllUserWishlist(
+      SERVER_TENANT_ID,
+      user.id,
+      limit,
+      offset
+    );
     await redisService.set(cacheKey, wishlists, 60 * 60 * 24);
 
     return {

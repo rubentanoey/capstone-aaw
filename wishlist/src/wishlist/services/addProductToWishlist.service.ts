@@ -44,6 +44,11 @@ export const addProductToWishlistService = async (
       ).generate();
     }
 
+    const redisService = RedisService.getInstance();
+    await redisService.incr(
+      `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
+    );
+
     return {
       data: wishlistDetail,
       status: 201,

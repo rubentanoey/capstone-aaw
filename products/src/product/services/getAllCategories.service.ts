@@ -18,7 +18,10 @@ export const getAllCategoriesService = async (
     const offset = (pageNumber - 1) * pageSize;
 
     const redisService = RedisService.getInstance();
-    const cacheKey = `categories:${SERVER_TENANT_ID}:limit-${limit}:offset-${offset}`;
+
+    const version =
+      (await redisService.get(`categories:${SERVER_TENANT_ID}:version`)) || 1;
+    const cacheKey = `categories:${SERVER_TENANT_ID}:version-${version}:limit-${limit}:offset-${offset}`;
 
     try {
       const cachedCategories = await redisService.get(cacheKey);

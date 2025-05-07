@@ -38,7 +38,8 @@ export const editCategoryService = async (
 
     const redisService = RedisService.getInstance();
     try {
-      await redisService.del(`categories:${SERVER_TENANT_ID}`);
+      await redisService.incr(`categories:${SERVER_TENANT_ID}:version`);
+      // await redisService.del(`categories:${SERVER_TENANT_ID}`);
       await redisService.del(
         `products:${SERVER_TENANT_ID}:category:${category_id}`
       );

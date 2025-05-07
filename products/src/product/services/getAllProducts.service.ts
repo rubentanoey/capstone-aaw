@@ -18,7 +18,10 @@ export const getAllProductsService = async (
     const offset = (pageNumber - 1) * pageSize;
 
     const redisService = RedisService.getInstance();
-    const cacheKey = `products:${SERVER_TENANT_ID}:all:limit-${limit}:offset-${offset}`;
+
+    const version =
+      (await redisService.get(`products:${SERVER_TENANT_ID}:version`)) || 1;
+    const cacheKey = `products:${SERVER_TENANT_ID}:version-${version}:limit-${limit}:offset-${offset}`;
 
     try {
       const cachedProducts = await redisService.get(cacheKey);

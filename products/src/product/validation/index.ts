@@ -7,3 +7,4 @@ export * from "./deleteProduct.schema";
 export * from "./deleteCategory.schema";
 export * from "./editProduct.schema";
 export * from "./editCategory.schema";
+export * from "./getAllProduct.schema";

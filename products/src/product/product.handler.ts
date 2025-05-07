@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import * as Service from "./services";
 
 export const getAllProductsHandler = async (req: Request, res: Response) => {
-  const response = await Service.getAllProductsService();
+  const { page_number, page_size } = req.query;
+
+  const pageNumber = parseInt(page_number as string);
+  const pageSize = parseInt(page_size as string);
+  const response = await Service.getAllProductsService(pageNumber, pageSize);
   return res.status(response.status).send(response.data);
 };
 

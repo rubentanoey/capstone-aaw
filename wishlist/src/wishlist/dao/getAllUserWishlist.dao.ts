@@ -4,7 +4,9 @@ import * as schema from "@db/schema/wishlist";
 
 export const getAllUserWishlist = async (
   tenant_id: string,
-  user_id: string
+  user_id: string,
+  limit: number,
+  offset: number
 ) => {
   const result = await db
     .select()
@@ -14,6 +16,8 @@ export const getAllUserWishlist = async (
         eq(schema.wishlist.tenant_id, tenant_id),
         eq(schema.wishlist.user_id, user_id)
       )
-    );
+    )
+    .limit(limit)
+    .offset(offset);
   return result;
 };

@@ -5,7 +5,12 @@ import * as Handler from "./wishlist.handler";
 
 const router = express.Router();
 
-router.get("/", verifyJWT, Handler.getAllUserWishlistHandler);
+router.get(
+  "/",
+  verifyJWT,
+  validate(Validation.getAllUserWishlistSchema),
+  Handler.getAllUserWishlistHandler
+);
 router.get(
   "/:id",
   verifyJWT,

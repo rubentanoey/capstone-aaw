@@ -3,7 +3,16 @@ import * as Service from "./services";
 
 export const getAllOrdersHandler = async (req: Request, res: Response) => {
   const { user } = req.body;
-  const response = await Service.getAllOrdersService(user);
+  const { page_number, page_size } = req.query;
+
+  const pageNumber = parseInt(page_number as string, 10);
+  const pageSize = parseInt(page_size as string, 10);
+
+  const response = await Service.getAllOrdersService(
+    user,
+    pageNumber,
+    pageSize
+  );
   return res.status(response.status).send(response.data);
 };
 

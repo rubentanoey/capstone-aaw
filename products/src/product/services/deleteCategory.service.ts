@@ -3,6 +3,7 @@ import {
   NotFoundResponse,
 } from "@src/commons/patterns";
 import { deleteCategoryById } from "@src/product/dao/deleteCategoryById.dao";
+import { RedisService } from "@src/commons/cache/redis";
 
 export const deleteCategoryService = async (category_id: string) => {
   try {
@@ -20,6 +21,18 @@ export const deleteCategoryService = async (category_id: string) => {
     const category = await deleteCategoryById(SERVER_TENANT_ID, category_id);
     if (!category) {
       return new NotFoundResponse("Category not found").generate();
+    }
+
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`categories:${SERVER_TENANT_ID}`);
+      await redisService.del(`category:${SERVER_TENANT_ID}:${category_id}`);
+      await redisService.del(
+        `products:${SERVER_TENANT_ID}:category:${category_id}`
+      );
+      await redisService.del(`products:${SERVER_TENANT_ID}:all`);
+    } catch (cacheError) {
+      console.error("Error invalidating category caches:", cacheError);
     }
 
     return {

@@ -3,6 +3,7 @@ import {
   NotFoundResponse,
   UnauthorizedResponse,
 } from "@src/commons/patterns";
+import { RedisService } from "@src/commons/cache/redis";
 import { editTenantById } from "@src/tenant/dao/editTenantById.dao";
 import { getTenantById } from "@src/tenant/dao/getTenantById.dao";
 import { User } from "@src/types/user";
@@ -35,6 +36,16 @@ export const editTenantService = async (
       return new InternalServerErrorResponse(
         "Failed to update tenant"
       ).generate();
+    }
+
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`tenant:${old_tenant_id}`);
+      if (tenant_id && tenant_id !== old_tenant_id) {
+        await redisService.del(`tenant:${tenant_id}`);
+      }
+    } catch (cacheError) {
+      console.error("Failed to invalidate tenant cache:", cacheError);
     }
 
     return {

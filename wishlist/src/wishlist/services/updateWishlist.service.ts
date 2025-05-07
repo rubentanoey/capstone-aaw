@@ -1,9 +1,7 @@
-import {
-  InternalServerErrorResponse,
-  NotFoundResponse,
-} from "@src/commons/patterns";
-import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
+import { InternalServerErrorResponse, NotFoundResponse } from "@src/commons/patterns";
 import { updateWishlistById } from "@src/wishlist/dao/updateWishlistById.dao";
+import { RedisService } from "@src/commons/cache";
+import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
 
 export const updateWishlistService = async (id: string, name?: string) => {
   try {
@@ -19,14 +17,18 @@ export const updateWishlistService = async (id: string, name?: string) => {
       return new NotFoundResponse("Wishlist not found").generate();
     }
 
+    const userId = existingWishlist.user_id;
+    
     const wishlist = await updateWishlistById(SERVER_TENANT_ID, id, {
       name,
     });
 
-    if (!wishlist) {
-      return new InternalServerErrorResponse(
-        "Failed to update wishlist"
-      ).generate();
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`user-wishlists:${SERVER_TENANT_ID}:${userId}`);
+      await redisService.del(`wishlist:${SERVER_TENANT_ID}:${id}:${userId}`);
+    } catch (cacheError) {
+      console.error("Failed to invalidate cache:", cacheError);
     }
 
     return {

@@ -7,6 +7,7 @@ import {
 import { addProductToWishlist } from "@src/wishlist/dao/addProductToWishlist.dao";
 import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
 import { User } from "@src/types";
+import { RedisService } from "@src/commons/cache";
 
 export const addProductToWishlistService = async (
   wishlist_id: string,

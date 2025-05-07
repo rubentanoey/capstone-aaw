@@ -8,3 +8,4 @@ data:
   PORT: "8002"
   AUTH_SERVICE_URL: "http://auth.marketplace.svc.cluster.local:8000/api"
   TENANT_SERVICE_URL: "http://tenant.marketplace.svc.cluster.local:8003/api"
+  DUMMY_PRODUCT_ID: "5edb2fc6-9193-4ea7-93f1-ff9b4d3b408c"

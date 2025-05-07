@@ -1,9 +1,14 @@
 import { NewUser, users } from "@db/schema/users";
 import { db, pool } from "./db";
 
+const DUMMY_USER_ID = process.env.DUMMY_USER_ID;
+if (!DUMMY_USER_ID) {
+  throw new Error("TENANT_ID or DUMMY_USER_ID or DUMMY_PRODUCT_ID not found");
+}
+
 async function generateUser() {
   const newUser: NewUser = {
-    id: "619ddb3e-0167-4b43-ad5d-d76b193dea42",
+    id: DUMMY_USER_ID,
     email: "seed@gmail.com",
     password: "seedingpassword",
     username: "seedinguser",

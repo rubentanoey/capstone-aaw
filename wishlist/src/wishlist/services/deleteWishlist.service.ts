@@ -20,8 +20,12 @@ export const deleteWishlistService = async (id: string) => {
     }
 
     const redisService = RedisService.getInstance();
+
     await redisService.del(`user-wishlists:${SERVER_TENANT_ID}`);
     await redisService.del(`wishlist:${SERVER_TENANT_ID}:${id}`);
+    await redisService.incr(
+      `user-wishlists:${SERVER_TENANT_ID}:${wishlist.user_id}:version`
+    );
 
     return {
       data: wishlist,

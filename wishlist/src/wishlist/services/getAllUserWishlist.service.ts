@@ -28,7 +28,11 @@ export const getAllUserWishlistService = async (
 
     const redisService = RedisService.getInstance();
 
-    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:limit-${limit}:offset-${offset}`;
+    const version =
+      redisService.get(
+        `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
+      ) || 1;
+    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version-${version}:limit-${limit}:offset-${offset}`;
     const cachedWishlists = await redisService.get(cacheKey);
     if (cachedWishlists) {
       return {

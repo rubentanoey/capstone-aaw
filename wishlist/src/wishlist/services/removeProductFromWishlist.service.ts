@@ -8,6 +8,7 @@ import { getWishlistDetailById } from "@src/wishlist/dao/getWishlistDetailById.d
 import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
 import { removeProductFromWishlist } from "@src/wishlist/dao/removeProductFromWishlist.dao";
 import { User } from "@src/types";
+import { RedisService } from "@src/commons/cache";
 
 export const removeProductFromWishlistService = async (
   id: string,
@@ -50,6 +51,11 @@ export const removeProductFromWishlistService = async (
         "Failed to remove product from wishlist"
       ).generate();
     }
+
+    const redisService = RedisService.getInstance();
+    await redisService.incr(
+      `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
+    );
 
     return {
       data: removeWishlistDetailData,

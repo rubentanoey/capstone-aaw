@@ -45,6 +45,16 @@ export class RedisService implements IRedisService {
     }
   }
 
+  public async incr(key: string): Promise<number> {
+    if (!this.isConnected) return 0;
+    try {
+      return await redisClient.incr(key);
+    } catch (err) {
+      console.error("Redis del error:", err);
+      return 0;
+    }
+  }
+
   public async set<T>(
     key: string,
     value: T,

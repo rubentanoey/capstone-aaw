@@ -247,7 +247,7 @@
         }
       }
     },
-    "/api/order": {
+    "/api/v1/order": {
       "get": {
         "tags": ["orders"],
         "summary": "Get all orders for a user",
@@ -365,7 +365,7 @@
         }
       }
     },
-    "/api/order/{orderId}": {
+    "/api/v1/order/{orderId}": {
       "get": {
         "tags": ["orders"],
         "summary": "Get order details by ID",
@@ -429,7 +429,7 @@
         }
       }
     },
-    "/api/order/{orderId}/pay": {
+    "/api/v1/order/{orderId}/pay": {
       "post": {
         "tags": ["orders"],
         "summary": "Pay for an order",
@@ -509,7 +509,7 @@
         }
       }
     },
-    "/api/order/{orderId}/cancel": {
+    "/api/v1/order/{orderId}/cancel": {
       "post": {
         "tags": ["orders"],
         "summary": "Cancel an order",
@@ -588,7 +588,7 @@
         }
       }
     },
-    "/api/cart": {
+    "/api/v1/cart": {
       "get": {
         "tags": ["cart"],
         "summary": "Get all cart items for a user",
@@ -795,7 +795,7 @@
         }
       }
     },
-    "/api/wishlist": {
+    "/api/v1/wishlist": {
       "get": {
         "tags": ["wishlist"],
         "summary": "Get all wishlists for a user",
@@ -893,7 +893,7 @@
         }
       }
     },
-    "/api/wishlist/{id}": {
+    "/api/v1/wishlist/{id}": {
       "get": {
         "tags": ["wishlist"],
         "summary": "Get wishlist by ID",
@@ -1058,7 +1058,7 @@
         }
       }
     },
-    "/api/wishlist/add": {
+    "/api/v1/wishlist/add": {
       "post": {
         "tags": ["wishlist"],
         "summary": "Add product to wishlist",
@@ -1115,7 +1115,7 @@
         }
       }
     },
-    "/api/wishlist/remove": {
+    "/api/v1/wishlist/remove": {
       "delete": {
         "tags": ["wishlist"],
         "summary": "Remove product from wishlist",

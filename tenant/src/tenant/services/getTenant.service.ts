@@ -1,7 +1,7 @@
 import {
   InternalServerErrorResponse,
   NotFoundResponse,
-} from "@src/commons/patterns/exceptions";
+} from "@src/commons/patterns";
 import { getTenantById } from "@src/tenant/dao/getTenantById.dao";
 
 export const getTenantService = async (tenant_id: string) => {
@@ -12,9 +12,7 @@ export const getTenantService = async (tenant_id: string) => {
     }
 
     return {
-      data: {
-        ...tenant,
-      },
+      data: tenant,
       status: 200,
     };
   } catch (err: any) {

@@ -1,4 +1,8 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  BadRequestResponse,
+  InternalServerErrorResponse,
+  NotFoundResponse,
+} from "@src/commons/patterns";
 import { editProductById } from "@src/product/dao/editProductById.dao";
 
 export const editProductService = async (
@@ -13,7 +17,23 @@ export const editProductService = async (
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
+      ).generate();
+    }
+
+    if (!id) {
+      return new NotFoundResponse("Product id not found").generate();
+    }
+
+    if (
+      !name &&
+      !description &&
+      price === undefined &&
+      quantity_available === undefined &&
+      !category_id
+    ) {
+      return new BadRequestResponse(
+        "No valid update parameters provided"
       ).generate();
     }
 
@@ -24,6 +44,10 @@ export const editProductService = async (
       quantity_available,
       category_id,
     });
+
+    if (!product) {
+      return new NotFoundResponse("Product not found").generate();
+    }
 
     return {
       data: product,

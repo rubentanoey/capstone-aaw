@@ -5,6 +5,7 @@ import { getUserByUsername } from "../dao/getUserByUsername.dao";
 import {
   InternalServerErrorResponse,
   NotFoundResponse,
+  UnauthenticatedResponse,
 } from "@src/commons/patterns";
 import { User } from "@db/schema/users";
 
@@ -12,18 +13,23 @@ export const loginService = async (username: string, password: string) => {
   try {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
-      return new InternalServerErrorResponse(
-        "Server tenant ID is missing"
-      ).generate();
+      return new InternalServerErrorResponse("Server tenant ID is missing", {
+        code: "MISSING_TENANT_ID",
+      }).generate();
     }
+
     const user: User = await getUserByUsername(username, SERVER_TENANT_ID);
     if (!user) {
-      return new NotFoundResponse("User not found").generate();
+      return new NotFoundResponse("User not found", {
+        code: "USER_NOT_FOUND",
+      }).generate();
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return new NotFoundResponse("Invalid password").generate();
+      return new UnauthenticatedResponse("Invalid credentials", {
+        code: "INVALID_CREDENTIALS",
+      }).generate();
     }
 
     const payload = {
@@ -42,6 +48,7 @@ export const loginService = async (username: string, password: string) => {
       status: 200,
     };
   } catch (err: any) {
-    return new InternalServerErrorResponse(err).generate();
+    console.error("Login service error:", err);
+    throw err;
   }
 };

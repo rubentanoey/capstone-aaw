@@ -6,7 +6,7 @@ export const createTenantService = async (owner_id: string, name: string) => {
     const tenant = await createNewTenant(owner_id, name);
     if (!tenant) {
       return new InternalServerErrorResponse(
-        "Error creating tenant"
+        "Failed to create tenant"
       ).generate();
     }
 

@@ -5,7 +5,6 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 
 import tenantRoutes from "@src/tenant/tenant.routes";
-import tenantRoutesV2 from "@src/tenant/tenant.routes.v2";
 
 import express_prom_bundle from "express-prom-bundle";
 
@@ -29,8 +28,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/tenant", tenantRoutes);
-app.use("/api/v2/tenant", tenantRoutesV2);
+app.use("/api/v1/tenant", tenantRoutes);
 
 // Health check endpoint
 app.get("/health", (_, res) => {

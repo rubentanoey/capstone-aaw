@@ -9,11 +9,13 @@ export const deleteCartItemService = async (user: User, product_id: string) => {
   try {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
-      return new InternalServerErrorResponse("Tenant ID not found").generate();
+      return new InternalServerErrorResponse(
+        "Server tenant id not found"
+      ).generate();
     }
 
     if (!user.id) {
-      return new NotFoundResponse("User not found").generate();
+      return new NotFoundResponse("User id not found").generate();
     }
 
     const cart = await deleteCartItemByProductId(

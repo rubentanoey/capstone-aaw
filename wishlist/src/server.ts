@@ -28,7 +28,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/v1/wishlist", wishlistRoutes);
 
 // Health check endpoint
 app.get("/health", (_, res) => {

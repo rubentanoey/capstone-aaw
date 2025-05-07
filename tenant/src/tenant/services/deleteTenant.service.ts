@@ -16,7 +16,7 @@ export const deleteTenantService = async (user: User, tenant_id: string) => {
 
     if (tenant_information.tenants.owner_id !== user.id) {
       return new UnauthorizedResponse(
-        "You are not allowed to delete this tenant"
+        "You are not authorized to delete this tenant"
       ).generate();
     }
 
@@ -26,9 +26,7 @@ export const deleteTenantService = async (user: User, tenant_id: string) => {
     }
 
     return {
-      data: {
-        ...tenant,
-      },
+      data: tenant,
       status: 200,
     };
   } catch (err: any) {

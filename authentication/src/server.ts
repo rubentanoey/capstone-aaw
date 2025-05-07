@@ -5,7 +5,6 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 
 import authRoutes from "./user/user.routes";
-import authRoutesV2 from "./user/user.routes.v2";
 
 import express_prom_bundle from "express-prom-bundle";
 
@@ -29,8 +28,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/v2/auth", authRoutesV2);
+app.use("/api/v1/auth", authRoutes);
 
 // Health check endpoint
 app.get("/health", (_, res) => {

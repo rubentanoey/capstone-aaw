@@ -1,6 +1,6 @@
 import {
+  BadRequestResponse,
   InternalServerErrorResponse,
-  NotFoundResponse,
 } from "@src/commons/patterns";
 import { getAllUserWishlist } from "@src/wishlist/dao/getAllUserWishlist.dao";
 import { User } from "@src/types";
@@ -14,8 +14,8 @@ export const getAllUserWishlistService = async (user: User) => {
       ).generate();
     }
 
-    if (!user.id) {
-      return new NotFoundResponse("User ID is missing").generate();
+    if (!user?.id) {
+      return new BadRequestResponse("User ID is required").generate();
     }
 
     const wishlists = await getAllUserWishlist(SERVER_TENANT_ID, user.id);

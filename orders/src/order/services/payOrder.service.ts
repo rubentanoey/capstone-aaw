@@ -19,6 +19,12 @@ export const payOrderService = async (
       ).generate();
     }
 
+    if (!amount || amount <= 0) {
+      return new BadRequestResponse(
+        "Valid payment amount is required"
+      ).generate();
+    }
+
     const paymentData: NewPayment = {
       tenant_id: SERVER_TENANT_ID,
       order_id: orderId,

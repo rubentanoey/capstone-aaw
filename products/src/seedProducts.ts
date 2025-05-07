@@ -1,11 +1,12 @@
 import { categories, Category } from "@db/schema/categories";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { NewProduct, products } from "@db/schema/products";
 
 const TENANT_ID = process.env.TENANT_ID;
-if (!TENANT_ID) {
-  console.log("T_ID is missing");
-  throw new Error("TENANT_ID is missing");
+const DUMMY_PRODUCT_ID = process.env.DUMMY_PRODUCT_ID;
+if (!TENANT_ID || !DUMMY_PRODUCT_ID) {
+  console.log("TENANT_ID or PRODUCT_ID is missing");
+  throw new Error("TENANT_ID or PRODUCT_ID is missing");
 }
 
 function generateProucts(categories: Category[]) {
@@ -37,7 +38,19 @@ async function main() {
     await db.insert(products).values(product);
   });
 
+  const dummyProduct: NewProduct = {
+    name: `Dummy Product`,
+    price: Math.floor(Math.random() * 10000) + 1000,
+    quantity_available: Math.floor(Math.random() * 10) + 1,
+    category_id: validCategories[0].id,
+    tenant_id: TENANT_ID!,
+    id: DUMMY_PRODUCT_ID,
+  };
+
+  await db.insert(products).values(dummyProduct);
+
   console.log("Seeding completed");
+  pool.end();
 }
 
 main();

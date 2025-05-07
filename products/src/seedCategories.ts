@@ -1,5 +1,5 @@
 import { NewCategory } from "@db/schema/categories";
-import { db } from "./db";
+import { db, pool } from "./db";
 import * as schema from "@db/schema/categories";
 
 const TENANT_ID = process.env.TENANT_ID;
@@ -34,6 +34,7 @@ async function main() {
   console.log("Start seeding");
   await GenerateSeeds();
   console.log("Seeding completed");
+  pool.end();
 }
 
 main();

@@ -1,4 +1,7 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  BadRequestResponse,
+  InternalServerErrorResponse,
+} from "@src/commons/patterns";
 import { getManyProductDatasById } from "@src/product/dao/getManyProductDatasById.dao";
 
 export const getManyProductDatasByIdService = async (productIds: string[]) => {
@@ -6,7 +9,13 @@ export const getManyProductDatasByIdService = async (productIds: string[]) => {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
+      ).generate();
+    }
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return new BadRequestResponse(
+        "Valid product ids are required"
       ).generate();
     }
 

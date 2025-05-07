@@ -21,6 +21,9 @@ export const cancelOrderService = async (user: User, order_id: string) => {
     }
 
     const order = await getOrderById(SERVER_TENANT_ID, user.id, order_id);
+    if (!order) {
+      return new NotFoundResponse("Order not found").generate();
+    }
 
     if (order.user_id !== user.id) {
       return new UnauthorizedResponse(

@@ -13,7 +13,7 @@ export const createProductService = async (
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
       ).generate();
     }
 
@@ -24,6 +24,7 @@ export const createProductService = async (
       price,
       quantity_available,
     };
+
     if (category_id) {
       productData.category_id = category_id;
     }

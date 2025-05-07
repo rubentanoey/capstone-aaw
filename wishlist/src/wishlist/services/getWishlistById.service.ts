@@ -1,4 +1,5 @@
 import {
+  BadRequestResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
   UnauthorizedResponse,
@@ -12,16 +13,15 @@ export const getWishlistByIdService = async (
   user: User
 ) => {
   try {
+    if (!user?.id) {
+      return new BadRequestResponse("User ID is required").generate();
+    }
+
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
         "Server tenant ID is missing"
       ).generate();
-    }
-
-    const wishlistDetail = await getWishlistDetailByWishlistId(wishlist_id);
-    if (!wishlistDetail) {
-      return new NotFoundResponse("Wishlist is empty").generate();
     }
 
     const wishlist = await getWishlistById(SERVER_TENANT_ID, wishlist_id);
@@ -31,8 +31,13 @@ export const getWishlistByIdService = async (
 
     if (wishlist.user_id !== user.id) {
       return new UnauthorizedResponse(
-        "User is not authorized to access this wishlist"
+        "You are not authorized to access this wishlist"
       ).generate();
+    }
+
+    const wishlistDetail = await getWishlistDetailByWishlistId(wishlist_id);
+    if (!wishlistDetail) {
+      return new NotFoundResponse("Wishlist is empty").generate();
     }
 
     return {

@@ -7,7 +7,7 @@ export const createCategoryService = async (name: string) => {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
       ).generate();
     }
 
@@ -19,9 +19,7 @@ export const createCategoryService = async (name: string) => {
     const newCategory = await createNewCategory(categoryData);
 
     return {
-      data: {
-        ...newCategory,
-      },
+      data: newCategory,
       status: 201,
     };
   } catch (err: any) {

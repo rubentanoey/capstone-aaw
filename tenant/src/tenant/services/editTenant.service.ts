@@ -22,7 +22,7 @@ export const editTenantService = async (
 
     if (tenant_information.tenants.owner_id !== user.id) {
       return new UnauthorizedResponse(
-        "You are not allowed to edit this tenant"
+        "You are not authorized to edit this tenant"
       ).generate();
     }
 
@@ -32,7 +32,9 @@ export const editTenantService = async (
       name,
     });
     if (!tenant) {
-      return new InternalServerErrorResponse("Error editing tenant").generate();
+      return new InternalServerErrorResponse(
+        "Failed to update tenant"
+      ).generate();
     }
 
     return {

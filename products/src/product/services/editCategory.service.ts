@@ -1,4 +1,8 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  BadRequestResponse,
+  InternalServerErrorResponse,
+  NotFoundResponse,
+} from "@src/commons/patterns";
 import { editCategoryById } from "@src/product/dao/editCategoryById.dao";
 
 export const editCategoryService = async (
@@ -9,13 +13,27 @@ export const editCategoryService = async (
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
+      ).generate();
+    }
+
+    if (!category_id) {
+      return new NotFoundResponse("Category id not found").generate();
+    }
+
+    if (!name) {
+      return new BadRequestResponse(
+        "No valid update parameters provided"
       ).generate();
     }
 
     const category = await editCategoryById(SERVER_TENANT_ID, category_id, {
       name,
     });
+
+    if (!category) {
+      return new NotFoundResponse("Category not found").generate();
+    }
 
     return {
       data: category,

@@ -1,7 +1,10 @@
 import bcrypt from "bcrypt";
 import { NewUser } from "@db/schema/users";
 import { insertNewUser } from "@src/user/dao/insertNewUser.dao";
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import { 
+  InternalServerErrorResponse,
+  BadRequestResponse
+} from "@src/commons/patterns";
 
 export const registerService = async (
   username: string,
@@ -12,17 +15,18 @@ export const registerService = async (
   phone_number: string
 ) => {
   try {
+    const SERVER_TENANT_ID = process.env.TENANT_ID;
+    if (!SERVER_TENANT_ID) {
+      return new InternalServerErrorResponse("Server tenant ID is missing", {
+        code: "MISSING_TENANT_ID",
+      }).generate();
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    if (!process.env.TENANT_ID) {
-      return new InternalServerErrorResponse(
-        "Server tenant ID is missing"
-      ).generate();
-    }
-
     const userData: NewUser = {
-      tenant_id: process.env.TENANT_ID,
+      tenant_id: SERVER_TENANT_ID,
       username,
       email,
       password: hashedPassword,
@@ -30,14 +34,33 @@ export const registerService = async (
       address,
       phone_number,
     };
-    console.log("userData===>", userData);
+
     const newUser = await insertNewUser(userData);
 
     return {
       data: newUser,
       status: 201,
     };
-  } catch (err: any) {
-    return new InternalServerErrorResponse(err).generate();
+  } catch (err: unknown) {
+    console.error("Registration service error:", err);
+    
+    if (err instanceof Error) {
+      if (err.message.includes("duplicate")) {
+        return new BadRequestResponse("User already exists", {
+          code: "USER_ALREADY_EXISTS",
+          includeStack: process.env.NODE_ENV !== "production",
+        }).generate();
+      }
+      
+      return new InternalServerErrorResponse(err.message, {
+        code: "REGISTRATION_ERROR",
+        includeStack: process.env.NODE_ENV !== "production",
+      }).generate();
+    }
+    
+    return new InternalServerErrorResponse("An unknown error occurred", {
+      code: "UNKNOWN_ERROR",
+      includeStack: process.env.NODE_ENV !== "production",
+    }).generate();
   }
 };

@@ -45,24 +45,16 @@ export const placeOrderService = async (
       ).generate();
     }
 
-    if (
-      !["JNE", "TIKI", "SICEPAT", "GOSEND", "GRAB_EXPRESS"].includes(
-        shipping_provider
-      )
-    ) {
+    if (!user.id) {
+      return new NotFoundResponse("User id not found").generate();
+    }
+
+    if (!VALID_SHIPPING_PROVIDERS.includes(shipping_provider)) {
       return new NotFoundResponse("Shipping provider not found").generate();
     }
 
-    if (!user.id) {
-      return new InternalServerErrorResponse("User id not found").generate();
-    }
-
-    // get the cart items
     const cartItems = await getAllCartItems(SERVER_TENANT_ID, user.id);
-
-    // get the product datas
-    const productIds = cartItems.map((item) => item.product_id);
-    if (productIds.length === 0) {
+    if (!cartItems || cartItems.length === 0) {
       return new BadRequestResponse("Cart is empty").generate();
     }
     
@@ -94,7 +86,6 @@ export const placeOrderService = async (
       ).generate();
     }
   } catch (err: any) {
-    console.error(err);
     return new InternalServerErrorResponse(err).generate();
   }
 };

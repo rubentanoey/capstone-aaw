@@ -1,4 +1,7 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  InternalServerErrorResponse,
+  NotFoundResponse,
+} from "@src/commons/patterns";
 import { getProductById } from "@src/product/dao/getProductById.dao";
 
 export const getProductByIdService = async (id: string) => {
@@ -6,16 +9,17 @@ export const getProductByIdService = async (id: string) => {
     const SERVER_TENANT_ID = process.env.TENANT_ID;
     if (!SERVER_TENANT_ID) {
       return new InternalServerErrorResponse(
-        "Server Tenant ID not found"
+        "Server tenant id not found"
       ).generate();
     }
 
-    const products = await getProductById(SERVER_TENANT_ID, id);
+    const product = await getProductById(SERVER_TENANT_ID, id);
+    if (!product) {
+      return new NotFoundResponse("Product not found").generate();
+    }
 
     return {
-      data: {
-        ...products,
-      },
+      data: product,
       status: 200,
     };
   } catch (err: any) {

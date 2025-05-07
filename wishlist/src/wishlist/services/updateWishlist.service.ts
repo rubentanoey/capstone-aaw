@@ -1,4 +1,8 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  InternalServerErrorResponse,
+  NotFoundResponse,
+} from "@src/commons/patterns";
+import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
 import { updateWishlistById } from "@src/wishlist/dao/updateWishlistById.dao";
 
 export const updateWishlistService = async (id: string, name?: string) => {
@@ -10,9 +14,20 @@ export const updateWishlistService = async (id: string, name?: string) => {
       ).generate();
     }
 
+    const existingWishlist = await getWishlistById(SERVER_TENANT_ID, id);
+    if (!existingWishlist) {
+      return new NotFoundResponse("Wishlist not found").generate();
+    }
+
     const wishlist = await updateWishlistById(SERVER_TENANT_ID, id, {
       name,
     });
+
+    if (!wishlist) {
+      return new InternalServerErrorResponse(
+        "Failed to update wishlist"
+      ).generate();
+    }
 
     return {
       data: wishlist,

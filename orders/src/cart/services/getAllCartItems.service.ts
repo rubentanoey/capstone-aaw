@@ -2,8 +2,8 @@ import {
   InternalServerErrorResponse,
   NotFoundResponse,
 } from "@src/commons/patterns";
-import { getAllCartItems } from "../dao/getAllCartItems.dao";
 import { User } from "@src/types";
+import { getAllCartItemsPaginated } from "../dao/getAllCartItemsPaginated.dao";
 
 export const getAllCartItemsService = async (
   user: User,
@@ -25,7 +25,7 @@ export const getAllCartItemsService = async (
     const limit = parseInt(page_size);
     const offset = (parseInt(page_number) - 1) * parseInt(page_size);
 
-    const items = await getAllCartItems(
+    const items = await getAllCartItemsPaginated(
       SERVER_TENANT_ID,
       user.id,
       limit,

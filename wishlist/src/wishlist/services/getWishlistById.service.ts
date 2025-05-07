@@ -4,6 +4,7 @@ import {
   NotFoundResponse,
   UnauthorizedResponse,
 } from "@src/commons/patterns";
+import { RedisService } from "@src/commons/cache";
 import { getWishlistDetailByWishlistId } from "@src/wishlist/dao/getWishlistDetailByWishlistId.dao";
 import { getWishlistById } from "@src/wishlist/dao/getWishlistById.dao";
 import { User } from "@src/types";
@@ -24,6 +25,17 @@ export const getWishlistByIdService = async (
       ).generate();
     }
 
+    const redisService = RedisService.getInstance();
+
+    const cacheKey = `wishlist:${SERVER_TENANT_ID}:${wishlist_id}:${user.id}`;
+    const cachedData = await redisService.get(cacheKey);
+    if (cachedData) {
+      return {
+        data: cachedData,
+        status: 200,
+      };
+    }
+
     const wishlist = await getWishlistById(SERVER_TENANT_ID, wishlist_id);
     if (!wishlist) {
       return new NotFoundResponse("Wishlist not found").generate();
@@ -39,6 +51,8 @@ export const getWishlistByIdService = async (
     if (!wishlistDetail) {
       return new NotFoundResponse("Wishlist is empty").generate();
     }
+
+    await redisService.set(cacheKey, wishlistDetail, 60 * 60 * 24);
 
     return {
       data: wishlistDetail,

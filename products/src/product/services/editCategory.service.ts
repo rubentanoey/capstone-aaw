@@ -4,6 +4,7 @@ import {
   NotFoundResponse,
 } from "@src/commons/patterns";
 import { editCategoryById } from "@src/product/dao/editCategoryById.dao";
+import { RedisService } from "@src/commons/cache/redis";
 
 export const editCategoryService = async (
   category_id: string,
@@ -33,6 +34,16 @@ export const editCategoryService = async (
 
     if (!category) {
       return new NotFoundResponse("Category not found").generate();
+    }
+
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`categories:${SERVER_TENANT_ID}`);
+      await redisService.del(
+        `products:${SERVER_TENANT_ID}:category:${category_id}`
+      );
+    } catch (cacheError) {
+      console.error("Error invalidating category caches:", cacheError);
     }
 
     return {

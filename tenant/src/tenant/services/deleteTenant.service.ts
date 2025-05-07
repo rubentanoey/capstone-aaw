@@ -3,6 +3,7 @@ import {
   NotFoundResponse,
   UnauthorizedResponse,
 } from "@src/commons/patterns";
+import { RedisService } from "@src/commons/cache/redis"; // Import RedisService
 import { deleteTenantById } from "../dao/deleteTenantById.dao";
 import { User } from "@src/types/user";
 import { getTenantById } from "../dao/getTenantById.dao";
@@ -23,6 +24,13 @@ export const deleteTenantService = async (user: User, tenant_id: string) => {
     const tenant = await deleteTenantById(tenant_id);
     if (!tenant) {
       return new NotFoundResponse("Tenant not found").generate();
+    }
+
+    const redisService = RedisService.getInstance();
+    try {
+      await redisService.del(`tenant:${tenant_id}`);
+    } catch (cacheError) {
+      console.error("Failed to invalidate tenant cache:", cacheError);
     }
 
     return {

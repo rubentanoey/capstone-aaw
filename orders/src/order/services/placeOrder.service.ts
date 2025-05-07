@@ -1,4 +1,3 @@
-import { getAllCartItems } from "@src/cart/dao/getAllCartItems.dao";
 import {
   BadRequestResponse,
   InternalServerErrorResponse,
@@ -8,11 +7,14 @@ import { ServiceBreaker } from "@src/commons/patterns/circuit-breaker";
 import { createOrder } from "@src/order/dao/createOrder.dao";
 import axios, { AxiosResponse } from "axios";
 import { User, Product } from "@src/types";
+import { getAllCartItems } from "@src/cart/dao/getAllCartItems.dao";
 
-const fetchProducts = async (productIds: string[]): Promise<AxiosResponse<Product[], any>> => {
+const fetchProducts = async (
+  productIds: string[]
+): Promise<AxiosResponse<Product[], any>> => {
   const response = await axios.post(
     `${process.env.PRODUCT_SERVICE_URL}/product/many`,
-    { productIds },
+    { productIds }
   );
   if (response.status !== 200) {
     throw new Error(`Failed to get products: Status ${response.status}`);
@@ -22,15 +24,15 @@ const fetchProducts = async (productIds: string[]): Promise<AxiosResponse<Produc
 
 const productServiceBreaker = new ServiceBreaker(
   fetchProducts,
-  'ProductService',
+  "ProductService",
   {
     timeout: 4000,
-    errorThresholdPercentage: 50
+    errorThresholdPercentage: 50,
   }
 );
 
 productServiceBreaker.fallback(() => {
-  throw new Error('Product service is currently unavailable');
+  throw new Error("Product service is currently unavailable");
 });
 
 export const placeOrderService = async (
@@ -65,10 +67,10 @@ export const placeOrderService = async (
     if (productIds.length === 0) {
       return new BadRequestResponse("Cart is empty").generate();
     }
-    
+
     try {
       const products = await productServiceBreaker.fire(productIds);
-      
+
       // create order
       const order = await createOrder(
         SERVER_TENANT_ID,
@@ -88,7 +90,7 @@ export const placeOrderService = async (
         status: 201,
       };
     } catch (breakerError) {
-      console.error('Product service circuit breaker error:', breakerError);
+      console.error("Product service circuit breaker error:", breakerError);
       return new InternalServerErrorResponse(
         "Product service unavailable, please try again later"
       ).generate();

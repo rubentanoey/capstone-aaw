@@ -10,6 +10,7 @@ const DB_NAME = process.env.DB_NAME ?? "orders";
 
 export const pool = new Pool({
   connectionString: `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
+  ssl: { rejectUnauthorized: false },
 });
 
 export const db = drizzle(pool);

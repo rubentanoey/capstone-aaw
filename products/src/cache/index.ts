@@ -8,7 +8,7 @@ const REDIS_DB = parseInt(process.env.REDIS_DB ?? "0", 10);
 
 if (!REDIS_PASSWORD) {
   console.error("Redis password is required but not provided");
-  process.exit(1); 
+  process.exit(1);
 }
 
 const constructedRedisUrl = `redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}`;

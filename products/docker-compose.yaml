@@ -16,6 +16,10 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=products
+      - ADMIN_TENANT_ID=47dd6b24-0b23-46b0-a662-776158d089ba
+      - DUMMY_PRODUCT_ID=5edb2fc6-9193-4ea7-93f1-ff9b4d3b408c
+      - REDIS_PASSWORD=redis
+      - REDIS_HOST=host.docker.internal
     depends_on:
       - db-products
     networks:
@@ -34,10 +38,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - marketplace_network
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    command: redis-server --requirepass redis
+    ports:
+      - "6379:6379"
+    networks:
+      - marketplace_network
 
 networks:
   marketplace_network:
-    external: true
+    external: false
 
 volumes:
   postgres_data:

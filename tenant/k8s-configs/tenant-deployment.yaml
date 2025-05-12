@@ -64,27 +64,27 @@ spec:
             - name: REDIS_URL
               valueFrom:
                 configMapKeyRef:
-                  name: products-config
+                  name: tenant-config
                   key: REDIS_URL
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: products-config
+                  name: tenant-secret
                   key: REDIS_PASSWORD
             - name: REDIS_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: products-config
+                  name: tenant-config
                   key: REDIS_HOST
             - name: REDIS_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: products-config
+                  name: tenant-config
                   key: REDIS_PORT
             - name: REDIS_DB
               valueFrom:
                 configMapKeyRef:
-                  name: products-secret
+                  name: tenant-config
                   key: REDIS_DB
           resources:
             requests:

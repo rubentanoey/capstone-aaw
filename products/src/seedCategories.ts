@@ -11,11 +11,13 @@ if (!TENANT_ID) {
 export async function GenerateSeeds() {
   const genCategories = generateCategories();
 
-  console.log("len: ", genCategories[0]);
-  genCategories.map(async (category: NewCategory, i) => {
+  console.log("len: ", genCategories.length);
+  const inserting = genCategories.map(async (category: NewCategory, i) => {
     console.log(`inserting category ${i}`);
     await db.insert(schema.categories).values(category);
   });
+
+  await Promise.all(inserting);
 }
 
 function generateCategories() {
@@ -34,7 +36,7 @@ async function main() {
   console.log("Start seeding");
   await GenerateSeeds();
   console.log("Seeding completed");
-  pool.end();
+  // pool.end();
 }
 
 main();

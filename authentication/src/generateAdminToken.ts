@@ -3,7 +3,7 @@ import {
   NotFoundResponse,
 } from "@src/commons/patterns";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 
 import { getUserByUsername } from "../src/user/dao/getUserByUsername.dao";
 import { NewUser, User } from "../db/schema/users";
@@ -25,7 +25,7 @@ export const GenerateAdminToken = async (
       return new NotFoundResponse("User not found").generate();
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
     if (!isPasswordValid) {
       return new NotFoundResponse("Invalid password").generate();
     }
@@ -65,8 +65,8 @@ const registerAdmin = async (
     ).generate();
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const salt = await bcryptjs.genSalt(10);
+  const hashedPassword = await bcryptjs.hash(password, salt);
 
   const userData: NewUser = {
     tenant_id: SERVER_TENANT_ID,

@@ -33,10 +33,12 @@ async function main() {
 
   const genProducts = generateProucts(validCategories);
 
-  genProducts.map(async (product: NewProduct, i) => {
-    console.log(`inserting category ${i}`);
+  const inserting = genProducts.map(async (product: NewProduct, i) => {
+    console.log(`inserting product ${i}`);
     await db.insert(products).values(product);
   });
+
+  await Promise.all(inserting);
 
   const dummyProduct: NewProduct = {
     name: `Dummy Product`,
@@ -50,7 +52,7 @@ async function main() {
   await db.insert(products).values(dummyProduct);
 
   console.log("Seeding completed");
-  pool.end();
+  // pool.end();
 }
 
 main();

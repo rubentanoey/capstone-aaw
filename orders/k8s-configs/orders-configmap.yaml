@@ -7,3 +7,10 @@ data:
   TENANT_ID: "47dd6b24-0b23-46b0-a662-776158d089ba"
   PORT: "8001"
   PRODUCT_SERVICE_URL: "http://products.marketplace.svc.cluster.local:8002/api"
+  DUMMY_USER_ID: "619ddb3e-0167-4b43-ad5d-d76b193dea42"
+  DUMMY_PRODUCT_ID: "5edb2fc6-9193-4ea7-93f1-ff9b4d3b408c"
+  DUMMY_PRODUCT_PRICE: "9901"
+  REDIS_HOST: redis-cache.marketplace.svc.cluster.local
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_URL: redis://:redis@redis-cache.marketplace.svc.cluster.local:6379/0

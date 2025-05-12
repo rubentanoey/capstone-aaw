@@ -63,9 +63,24 @@ spec:
                   key: DB_NAME
             - name: REDIS_HOST
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   name: auth-config
                   key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-config
+                  key: REDIS_PORT
+            - name: REDIS_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-config
+                  key: REDIS_DB
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-config
+                  key: REDIS_URL
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:

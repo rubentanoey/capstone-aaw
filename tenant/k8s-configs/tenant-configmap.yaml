@@ -7,3 +7,7 @@ data:
   TENANT_ID: "47dd6b24-0b23-46b0-a662-776158d089ba"
   PORT: "8003"
   AUTH_SERVICE_URL: "http://auth.marketplace.svc.cluster.local:8000/api"
+  REDIS_HOST: redis-cache.marketplace.svc.cluster.local
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_URL: redis://:redis@redis-cache.marketplace.svc.cluster.local:6379/0

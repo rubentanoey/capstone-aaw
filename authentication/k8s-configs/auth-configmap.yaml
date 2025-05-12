@@ -10,3 +10,6 @@ data:
   NODE_ENV: "development"
   DUMMY_USER_ID: "619ddb3e-0167-4b43-ad5d-d76b193dea42"
   REDIS_HOST: redis-cache.marketplace.svc.cluster.local
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_URL: redis://:redis@redis-cache.marketplace.svc.cluster.local:6379/0

@@ -37,7 +37,7 @@ services:
 
 networks:
   marketplace_network:
-    external: true
+    external: false
 
 volumes:
   postgres_data:

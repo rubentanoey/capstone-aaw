@@ -16,7 +16,7 @@ export const options = {
 export default function () {
   // User authentication
   let loginRes = http.post(
-    "http://34.236.155.138:30001/api/v1/auth/login",
+    "http://localhost:8000/api/v1/auth/login",
     JSON.stringify({
       username: "user${__VU}",
       password: "Password123",
@@ -39,7 +39,7 @@ export default function () {
   sleep(Math.random() * 3);
 
   if (token) {
-    let productsRes = http.get("http://34.236.155.138:30002/api/v1/product", {
+    let productsRes = http.get("http://localhost:8002/api/v1/product", {
       headers: { Authorization: `Bearer ${token}` },
     });
 

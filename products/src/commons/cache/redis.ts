@@ -1,4 +1,4 @@
-import { redisClient } from "@src/cache";
+import { redisClient, initRedis } from "@src/cache";
 
 export interface IRedisService {
   get<T>(key: string): Promise<T | null>;
@@ -10,6 +10,7 @@ export interface IRedisService {
 export class RedisService implements IRedisService {
   private static instance: RedisService;
   private isConnected = false;
+  private isInitialized = false;
 
   private constructor() {
     redisClient.on("error", () => {
@@ -34,8 +35,24 @@ export class RedisService implements IRedisService {
     return RedisService.instance;
   }
 
+  private async ensureConnection(): Promise<boolean> {
+    if (!this.isInitialized) {
+      try {
+        if (!redisClient.isOpen) {
+          await initRedis();
+        }
+        this.isInitialized = true;
+        this.isConnected = redisClient.isOpen;
+      } catch (error) {
+        console.error("Failed to connect to Redis:", error);
+        this.isConnected = false;
+      }
+    }
+    return this.isConnected;
+  }
+
   public async get<T>(key: string): Promise<T | null> {
-    if (!this.isConnected) return null;
+    if (!(await this.ensureConnection())) return null;
     try {
       const data = await redisClient.get(key);
       return data ? (JSON.parse(data) as T) : null;
@@ -50,7 +67,7 @@ export class RedisService implements IRedisService {
     value: T,
     ttlSeconds?: number
   ): Promise<boolean> {
-    if (!this.isConnected) return false;
+    if (!(await this.ensureConnection())) return false;
     try {
       const str = JSON.stringify(value);
       if (ttlSeconds !== undefined) {
@@ -66,7 +83,7 @@ export class RedisService implements IRedisService {
   }
 
   public async del(key: string | string[]): Promise<number> {
-    if (!this.isConnected) return 0;
+    if (!(await this.ensureConnection())) return 0;
     try {
       return await redisClient.del(key);
     } catch (err) {
@@ -76,17 +93,17 @@ export class RedisService implements IRedisService {
   }
 
   public async incr(key: string): Promise<number> {
-    if (!this.isConnected) return 0;
+    if (!(await this.ensureConnection())) return 0;
     try {
       return await redisClient.incr(key);
     } catch (err) {
-      console.error("Redis del error:", err);
+      console.error("Redis incr error:", err);
       return 0;
     }
   }
 
   public async delByPrefix(prefix: string): Promise<number> {
-    if (!this.isConnected) return 0;
+    if (!(await this.ensureConnection())) return 0;
     try {
       const keys = await redisClient.keys(`${prefix}*`);
       return keys.length > 0 ? await redisClient.del(keys) : 0;

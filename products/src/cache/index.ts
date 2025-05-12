@@ -25,11 +25,6 @@ export const redisClient = createClient({
   url: connectionUrl,
 });
 
-redisClient.connect().catch((error) => {
-  console.error("Failed to connect to Redis:", error);
-  process.exit(1);
-});
-
 redisClient.on("error", (err) => {
   console.error("Redis Client Error:", err);
 });
@@ -45,3 +40,15 @@ redisClient.on("reconnecting", () => {
 redisClient.on("ready", () => {
   console.log("Redis Client Ready");
 });
+
+export const initRedis = async () => {
+  try {
+    console.log("Initializing Redis...");
+    console.log("Connecting to Redis at:", connectionUrl);
+    await redisClient.connect();
+    console.log("Redis initialized successfully");
+  } catch (error) {
+    console.error("Failed to connect to Redis:", error);
+    process.exit(1);
+  }
+};

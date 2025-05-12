@@ -8,7 +8,7 @@ const REDIS_DB = parseInt(process.env.REDIS_DB ?? "0", 10);
 
 if (!REDIS_PASSWORD) {
   console.error("Redis password is required but not provided");
-  process.exit(1); 
+  process.exit(1);
 }
 
 const constructedRedisUrl = `redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}`;
@@ -23,11 +23,6 @@ if (process.env.REDIS_URL && process.env.REDIS_URL !== constructedRedisUrl) {
 
 export const redisClient = createClient({
   url: connectionUrl,
-});
-
-redisClient.connect().catch((error) => {
-  console.error("Failed to connect to Redis:", error);
-  process.exit(1);
 });
 
 redisClient.on("error", (err) => {
@@ -45,3 +40,15 @@ redisClient.on("reconnecting", () => {
 redisClient.on("ready", () => {
   console.log("Redis Client Ready");
 });
+
+export const initRedis = async () => {
+  try {
+    console.log("Initializing Redis...");
+    console.log("Connecting to Redis at:", connectionUrl);
+    await redisClient.connect();
+    console.log("Redis initialized successfully");
+  } catch (error) {
+    console.error("Failed to connect to Redis:", error);
+    process.exit(1);
+  }
+};

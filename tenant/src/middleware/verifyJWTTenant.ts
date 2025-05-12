@@ -19,7 +19,8 @@ const authServiceBreaker = new ServiceBreaker(verifyToken, "AuthService", {
   errorThresholdPercentage: 50,
 });
 
-authServiceBreaker.fallback(() => {
+authServiceBreaker.fallback((debug: any) => {
+  console.log("error: ", debug);
   throw new Error("Authentication service unavailable");
 });
 

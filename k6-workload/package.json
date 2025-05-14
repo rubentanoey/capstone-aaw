@@ -4,10 +4,10 @@
   "main": "1-baseline.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "baseline":  "k6 run --out web-dashboard 1-baseline.js",
-    "complex":  "k6 run --out web-dashboard 2-2-complex_user_journey.js",
-    "resilience":  "k6 run --out web-dashboard 3-resilience.js",
-    "ha":  "k6 run --out web-dashboard 4-high_availability.js"
+    "baseline": "k6 run --out web-dashboard 1-baseline.js",
+    "complex": "k6 run --out web-dashboard 2-complex_user_journey.js",
+    "resilience": "k6 run --out web-dashboard 3-resilience.js",
+    "ha": "k6 run --out web-dashboard 4-high_availability.js"
   },
   "author": "Valencius Apriady",
   "license": "ISC",

@@ -4,8 +4,10 @@ import { check, sleep } from "k6";
 export const options = {
   stages: [
     { duration: "2m", target: 100 }, // Ramp up to 100 users
-    { duration: "5m", target: 100 }, // Stay at 100 users
-    { duration: "2m", target: 0 }, // Ramp down
+    { duration: "2m", target: 300 }, // Stay at 100 users
+    { duration: "2m", target: 700 }, // Stay at 100 users
+    { duration: "2m", target: 1000 }, // Stay at 100 users
+    { duration: "2m", target: 2000 }, // Ramp down
   ],
   thresholds: {
     http_req_duration: ["p(95)<500"], // 95% of requests should be below 500ms
@@ -16,9 +18,9 @@ export const options = {
 export default function () {
   // User authentication
   let loginRes = http.post(
-    "http://54.237.195.212:30001/api/v1/auth/login",
+    "http://54.159.190.23:30001/api/v1/auth/login",
     JSON.stringify({
-      username: "user${__VU}",
+      username: "john_man",
       password: "Password123",
     }),
     {
@@ -33,19 +35,24 @@ export default function () {
   // Extract token
   let token = "";
   if (loginRes.status === 200) {
-    token = JSON.parse(loginRes.body).data.token;
+    token = JSON.parse(loginRes.body).token;
   }
 
   sleep(Math.random() * 3);
 
   if (token) {
-    let productsRes = http.get("http://54.237.195.212:8002/api/v1/product", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    let productsRes = http.get(
+      "http://54.159.190.23:30002/api/v1/product?page_number=1&page_size=10",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     check(productsRes, {
       "products retrieved": (r) => r.status === 200,
     });
+
+    console.log(`Products: ${productsRes.body}`);
 
     sleep(Math.random() * 2);
   }

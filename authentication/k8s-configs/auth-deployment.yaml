@@ -13,10 +13,15 @@ spec:
       labels:
         app: auth
     spec:
+      tolerations:
+        - key: "key"
+          operator: "Equal"
+          value: "value"
+          effect: "NoSchedule"
       containers:
         - name: auth
           image: rubentanoey/marketplace-authentication:latest
-          imagePullPolicy: Always 
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:

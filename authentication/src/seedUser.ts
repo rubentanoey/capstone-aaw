@@ -1,5 +1,6 @@
 import { NewUser, users } from "@db/schema/users";
 import { db, pool } from "./db";
+import bcrypt from "bcryptjs";
 
 const DUMMY_USER_ID = process.env.DUMMY_USER_ID;
 if (!DUMMY_USER_ID) {
@@ -7,10 +8,13 @@ if (!DUMMY_USER_ID) {
 }
 
 async function generateUser() {
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash("seedingpassword", salt);
+
   const newUser: NewUser = {
     id: DUMMY_USER_ID,
     email: "seed@gmail.com",
-    password: "seedingpassword",
+    password: hashedPassword,
     username: "seedinguser",
   };
 

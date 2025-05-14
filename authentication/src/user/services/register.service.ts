@@ -1,9 +1,9 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { NewUser } from "@db/schema/users";
 import { insertNewUser } from "@src/user/dao/insertNewUser.dao";
-import { 
+import {
   InternalServerErrorResponse,
-  BadRequestResponse
+  BadRequestResponse,
 } from "@src/commons/patterns";
 
 export const registerService = async (
@@ -43,7 +43,7 @@ export const registerService = async (
     };
   } catch (err: unknown) {
     console.error("Registration service error:", err);
-    
+
     if (err instanceof Error) {
       if (err.message.includes("duplicate")) {
         return new BadRequestResponse("User already exists", {
@@ -51,13 +51,13 @@ export const registerService = async (
           includeStack: process.env.NODE_ENV !== "production",
         }).generate();
       }
-      
+
       return new InternalServerErrorResponse(err.message, {
         code: "REGISTRATION_ERROR",
         includeStack: process.env.NODE_ENV !== "production",
       }).generate();
     }
-    
+
     return new InternalServerErrorResponse("An unknown error occurred", {
       code: "UNKNOWN_ERROR",
       includeStack: process.env.NODE_ENV !== "production",

@@ -1,5 +1,5 @@
-import { NewUser, users } from "@db/schema/users";
-import { db, pool } from "./db";
+import { NewUser } from "@db/schema/users";
+import { registerService } from "./user/services";
 
 const DUMMY_USER_ID = process.env.DUMMY_USER_ID;
 if (!DUMMY_USER_ID) {
@@ -14,14 +14,22 @@ async function generateUser() {
     username: "seedinguser",
   };
 
-  await db.insert(users).values(newUser);
+  registerService(
+    newUser.username,
+    newUser.email,
+    newUser.password,
+    "",
+    "",
+    ""
+  );
+  // await db.insert(users).values(newUser);
 }
 
 async function main() {
   console.log("Start seeding");
   await generateUser();
   console.log("Seeding completed");
-  pool.end();
+  // pool.end();
 }
 
 main();

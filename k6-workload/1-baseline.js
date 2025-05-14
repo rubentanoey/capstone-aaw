@@ -18,10 +18,10 @@ export const options = {
 export default function () {
   // User authentication
   let loginRes = http.post(
-    "http://54.159.190.23:30001/api/v1/auth/login",
+    "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/auth/login",
     JSON.stringify({
-      username: "john_man",
-      password: "Password123",
+      username: "seedinguser",
+      password: "seedingpassword",
     }),
     {
       headers: { "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ export default function () {
 
   if (token) {
     let productsRes = http.get(
-      "http://54.159.190.23:30002/api/v1/product?page_number=1&page_size=10",
+      "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/product?page_number=1&page_size=10",
       {
         headers: { Authorization: `Bearer ${token}` },
       }

@@ -40,7 +40,8 @@ export default function () {
   if (__ITER % 3 === 0) {
     purchaseFlow(token);
   } else {
-    browsingFlow(token);
+    purchaseFlow(token);
+    // browsingFlow(token);
   }
 }
 
@@ -49,10 +50,10 @@ function auth() {
 
   group("Authentication", function () {
     let loginRes = http.post(
-      "http://54.159.190.23:30001/api/v1/auth/login",
+      "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/auth/login",
       JSON.stringify({
-        username: "john_man",
-        password: "Password123",
+        username: "seedinguser",
+        password: "seedingpassword",
       }),
       {
         headers: { "Content-Type": "application/json" },
@@ -76,14 +77,12 @@ function browsingFlow(token) {
   group("Product Browsing", function () {
     // Get all categories
     let categoriesRes = http.get(
-      "http://54.159.190.23:30002/api/v1/product/category?page_number=1&page_size=10"
+      "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/product/category?page_number=1&page_size=10"
     );
 
     check(categoriesRes, {
       "categories retrieved": (r) => r.status === 200,
     });
-
-    console.log(`Categories Response: ${categoriesRes.body}`);
 
     if (categoriesRes.status === 200) {
       const categories = JSON.parse(categoriesRes.body).categories;
@@ -93,7 +92,7 @@ function browsingFlow(token) {
 
         // Get exact category
         let categoryProductsRes = http.get(
-          `http://54.159.190.23:30002/api/v1/product/category/${randomCategory.id}`,
+          `http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/product/category/${randomCategory.id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -106,21 +105,24 @@ function browsingFlow(token) {
         const products = JSON.parse(categoryProductsRes.body).products;
 
         if (products && products.length > 0) {
-          // Get 1-5 random products
-          const randomCount = Math.floor(Math.random() * 5) + 1;
+          const randomCount = Math.floor(Math.random() * products.length) + 1;
           const randomProducts = [];
           for (let i = 0; i < randomCount; i++) {
-            randomProducts.push(randomItem(products.id));
+            const randomProduct = randomItem(products);
+            randomProducts.push(randomProduct.id);
           }
 
           // Get products
           let productsRes = http.post(
-            "http://54.159.190.23:30002/api/v1/product/many",
+            "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/product/many",
             JSON.stringify({
-              product_ids: randomProducts,
+              productIds: randomProducts,
             }),
             {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             }
           );
 
@@ -128,11 +130,9 @@ function browsingFlow(token) {
             "product details retrieved": (r) => r.status === 200,
           });
 
-          console.log(`Products Response: ${productsRes.body}`);
-
           // Create new wishlist
           let createWishlistRes = http.post(
-            "http://54.159.190.23:30005/api/v1/wishlist",
+            "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/wishlist",
             JSON.stringify({
               name: "My Wishlist",
             }),
@@ -148,12 +148,12 @@ function browsingFlow(token) {
             "wishlist created": (r) => r.status === 201,
           });
 
-          // Add products to wishlist
           const wishlistId = JSON.parse(createWishlistRes.body).id;
 
+          // Add products to wishlist
           for (let i = 0; i < randomCount; i++) {
             let addToWishlistRes = http.post(
-              "http://54.159.190.23:30005/api/v1/wishlist/add",
+              "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/wishlist/add",
               JSON.stringify({
                 wishlist_id: wishlistId,
                 product_id: randomProducts[i],
@@ -173,7 +173,7 @@ function browsingFlow(token) {
 
           // Get wishlist
           let wishlistRes = http.get(
-            "http://54.159.190.23:30005/api/v1/wishlist",
+            "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/wishlist?page_number=1&page_size=10",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -195,9 +195,15 @@ function purchaseFlow(token) {
 
   group("Shopping Flow", function () {
     // Get products
-    let productsRes = http.get("http://54.159.190.23:30002/api/v1/product", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const randomNumber = Math.floor(Math.random() * 90) + 1;
+    const randomSize = Math.floor(Math.random() * 90) + 1;
+
+    let productsRes = http.get(
+      `http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/product?page_number=${randomNumber}&page_size=${randomSize}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     check(productsRes, {
       "products retrieved": (r) => r.status === 200,
@@ -205,34 +211,48 @@ function purchaseFlow(token) {
 
     // Add product to cart
     if (productsRes.status === 200) {
-      const products = JSON.parse(productsRes.body).data.products;
-      
+      const products = JSON.parse(productsRes.body).products;
+
       if (products && products.length > 0) {
-        const randomProduct = randomItem(products);
-        productId = randomProduct.id;
+        // Randomly select some products
+        const randomCount = Math.floor(Math.random() * products.length) + 1;
+        const randomProducts = [];
+        for (let i = 0; i < randomCount; i++) {
+          const randomProduct = randomItem(products);
+          randomProducts.push(randomProduct.id);
+        }
 
-        let addToCartRes = http.post(
-          "http://54.159.190.23:30003/api/v1/cart",
-          JSON.stringify({
-            product_id: productId,
-            quantity: 1,
-          }),
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // iter over the random products to add to cart
 
-        check(addToCartRes, {
-          "product added to cart": (r) => r.status === 201,
-        });
+        for (let i = 0; i < randomCount; i++) {
+          productId = randomProducts[i];
+
+          let addToCartRes = http.post(
+            "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/cart",
+            JSON.stringify({
+              product_id: productId,
+              quantity: 1,
+            }),
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          check(addToCartRes, {
+            "product added to cart": (r) => r.status === 201,
+          });
+        }
 
         // View cart
-        let cartRes = http.get("http://54.159.190.23:30003/api/v1/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        let cartRes = http.get(
+          "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/cart?page_number=1&page_size=10",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         check(cartRes, {
           "cart retrieved": (r) => r.status === 200,
@@ -240,9 +260,9 @@ function purchaseFlow(token) {
 
         // Place order
         let orderRes = http.post(
-          "http://54.159.190.23:30003/api/v1/order",
+          "http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/order",
           JSON.stringify({
-            shipping_provider: "JNE",
+            shipping_provider: "TIKI",
           }),
           {
             headers: {
@@ -261,7 +281,7 @@ function purchaseFlow(token) {
           const order = JSON.parse(orderRes.body).order;
 
           let orderDetailsRes = http.get(
-            `http://54.159.190.23:30003/api/v1/order/${order.id}`,
+            `http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/order/${order.id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -270,6 +290,38 @@ function purchaseFlow(token) {
           check(orderDetailsRes, {
             "order details retrieved": (r) => r.status === 200,
           });
+
+          console.log(`Order details: ${orderDetailsRes.body}`);
+
+          if (orderDetailsRes.status === 200) {
+            const orderId = JSON.parse(orderDetailsRes.body).order_id;
+            const orderPrice = JSON.parse(orderDetailsRes.body).unit_price;
+            const orderQuantity = JSON.parse(orderDetailsRes.body).quantity;
+
+            // Pay for order
+            let payOrderRes = http.post(
+              `http://Capstone-LB-1266500702.us-east-1.elb.amazonaws.com/api/v1/order/${orderId}/pay`,
+              JSON.stringify({
+                payment_method: "BCA",
+                payment_reference: "1234567890",
+                amount: orderPrice * orderQuantity,
+              }),
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            check(payOrderRes, {
+              "order paid": (r) => r.status === 200,
+            });
+
+            console.log(
+              `Order ${payOrderRes.body}. Order ID: ${orderId}, Amount: ${orderPrice}`
+            );
+          }
         }
       }
     }

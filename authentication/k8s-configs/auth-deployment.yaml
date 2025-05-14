@@ -16,7 +16,7 @@ spec:
       containers:
         - name: auth
           image: rubentanoey/marketplace-authentication:latest
-          imagePullPolicy: Always 
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
@@ -102,8 +102,8 @@ spec:
                   key: REDIS_PASSWORD
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "250m"
-            limits:
+              cpu: "200m"
               memory: "256Mi"
-              cpu: "500m"
+            limits:
+              cpu: "400m"
+              memory: "512Mi"

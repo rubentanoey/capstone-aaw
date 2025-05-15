@@ -44,6 +44,8 @@ export const getAllProductsService = async (
       console.error("Error retrieving from cache:", cacheError);
     }
 
+    console.log("Cache miss, fetching from database...");
+    
     const offset = chunkIndex * CHUNK_SIZE;
     const products = await getAllProductsByTenantId(
       SERVER_TENANT_ID,

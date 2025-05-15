@@ -53,6 +53,7 @@ export const getAllUserWishlistService = async (
       console.error("Error retrieving from cache:", cacheError);
     }
 
+    console.log("Cache miss, fetching from database...");
     const wishlists = await getAllUserWishlist(
       SERVER_TENANT_ID,
       user.id,

@@ -41,6 +41,8 @@ export const getAllCategoriesService = async (
     } catch (cacheError) {
       console.error("Error retrieving from cache:", cacheError);
     }
+    
+    console.log("Cache miss, fetching from database...");
 
     const offset = chunkIndex * CHUNK_SIZE;
     const categories = await getAllCategoriesByTenantId(

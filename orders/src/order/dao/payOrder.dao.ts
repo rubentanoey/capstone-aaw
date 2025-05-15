@@ -53,6 +53,8 @@ export const payOrder = async (data: NewPayment) => {
     }, 0);
 
     if (payment?.[0].amount !== total_amount) {
+      console.log("payment amount: ", payment?.[0].amount);
+      console.log("total amount(db): ", total_amount);
       await trx.rollback();
       return;
     }

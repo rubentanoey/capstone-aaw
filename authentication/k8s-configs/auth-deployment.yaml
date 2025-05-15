@@ -102,8 +102,8 @@ spec:
                   key: REDIS_PASSWORD
           resources:
             requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "400m"
               memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"

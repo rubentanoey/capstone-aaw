@@ -45,8 +45,6 @@ export const verifyJWTTenant = async (
     try {
       const response = await authServiceBreaker.fire(token);
 
-      console.log("response", response);
-
       if (response.status !== 200 || !response.data) {
         return res.status(401).send({ message: "Invalid token" });
       }

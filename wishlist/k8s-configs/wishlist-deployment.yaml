@@ -83,8 +83,8 @@ spec:
                   key: REDIS_DB
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
               cpu: "500m"
+              memory: "768Mi"
+            limits:
+              cpu: "600m"
+              memory: "1024Mi"

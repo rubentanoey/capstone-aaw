@@ -1,68 +1,59 @@
-import { InternalServerErrorResponse } from "@src/commons/patterns";
+import {
+  BadRequestResponse,
+  InternalServerErrorResponse,
+} from "@src/commons/patterns";
 import { RedisService } from "@src/commons/cache/redis";
 import { getAllProductsByTenantId } from "@src/product/dao/getAllProductsByTenantId.dao";
+
+const STANDARD_PAGE_SIZES = [10, 25, 50, 100];
+const CACHE_TTL_SECONDS = 60 * 60 * 24;
 
 export const getAllProductsService = async (
   pageNumber: number,
   pageSize: number
 ) => {
   try {
-    const SERVER_TENANT_ID = process.env.TENANT_ID;
-    if (!SERVER_TENANT_ID) {
+    const tenantId = process.env.TENANT_ID;
+    if (!tenantId) {
       return new InternalServerErrorResponse(
-        "Server tenant id not found"
+        "Server tenant ID is missing"
       ).generate();
     }
 
-    const standardPageSizes = [10, 25, 50, 100];
-    const normalizedPageSize =
-      standardPageSizes.find((size) => size >= pageSize) ||
-      standardPageSizes[standardPageSizes.length - 1];
-
-    const CHUNK_SIZE = 100;
-    const chunkIndex = Math.floor(
-      (pageNumber - 1) * pageSize / CHUNK_SIZE
-    );
-
-    const redisService = RedisService.getInstance();
-
-    const version =
-      (await redisService.get(`products:${SERVER_TENANT_ID}:version`)) || 1;
-    const cacheKey = `products:${SERVER_TENANT_ID}:version-${version}:chunk-${chunkIndex}`;
-
-    try {
-      const cachedProducts = await redisService.get(cacheKey);
-      if (cachedProducts) {
-        return {
-          data: {
-            products: cachedProducts,
-          },
-          status: 200,
-        };
-      }
-    } catch (cacheError) {
-      console.error("Error retrieving from cache:", cacheError);
+    if (pageNumber < 1 || pageSize < 1) {
+      return new BadRequestResponse("Invalid pagination parameters").generate();
     }
 
-    console.log("Cache miss, fetching from database...");
-    
-    const offset = chunkIndex * CHUNK_SIZE;
+    const normalizedPageSize =
+      STANDARD_PAGE_SIZES.find((size) => size >= pageSize) ||
+      STANDARD_PAGE_SIZES[STANDARD_PAGE_SIZES.length - 1];
+    const offset = (pageNumber - 1) * normalizedPageSize;
+
+    const redisService = RedisService.getInstance();
+    const version =
+      (await redisService.get(`products:${tenantId}:version`)) || 1;
+    const cacheKey = `products:${tenantId}:v${version}:p${pageNumber}:s${normalizedPageSize}`;
+
+    const cached = await redisService.get(cacheKey).catch((err) => {
+      console.error("Cache lookup error:", err);
+      return null;
+    });
+    if (cached) {
+      return { status: 200, data: { products: cached } };
+    }
+
     const products = await getAllProductsByTenantId(
-      SERVER_TENANT_ID,
+      tenantId,
       normalizedPageSize,
       offset
     );
-    try {
-      await redisService.set(cacheKey, products, 60 * 60 * 24);
-    } catch (cacheError) {
-      console.error("Error storing products in cache:", cacheError);
-    }
 
-    return {
-      data: products,
-      status: 200,
-    };
+    redisService
+      .set(cacheKey, products, CACHE_TTL_SECONDS)
+      .catch((err) => console.error("Cache set error:", err));
+
+    return { status: 200, data: { products } };
   } catch (err: any) {
-    return new InternalServerErrorResponse(err).generate();
+    return new InternalServerErrorResponse(err.message).generate();
   }
 };

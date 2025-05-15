@@ -6,14 +6,17 @@ import { RedisService } from "@src/commons/cache/redis";
 import { getAllUserWishlist } from "@src/wishlist/dao/getAllUserWishlist.dao";
 import { User } from "@src/types";
 
+const STANDARD_PAGE_SIZES = [10, 25, 50, 100];
+const CACHE_TTL_SECONDS = 60 * 60 * 24;
+
 export const getAllUserWishlistService = async (
   user: User,
-  page_number: number,
-  page_size: number
+  pageNumber: number,
+  pageSize: number
 ) => {
   try {
-    const SERVER_TENANT_ID = process.env.TENANT_ID;
-    if (!SERVER_TENANT_ID) {
+    const tenantId = process.env.TENANT_ID;
+    if (!tenantId) {
       return new InternalServerErrorResponse(
         "Server tenant ID is missing"
       ).generate();
@@ -23,58 +26,43 @@ export const getAllUserWishlistService = async (
       return new BadRequestResponse("User ID is required").generate();
     }
 
-    const standardPageSizes = [10, 25, 50, 100];
-    const normalizedPageSize =
-      standardPageSizes.find((size) => size >= page_size) ||
-      standardPageSizes[standardPageSizes.length - 1];
-
-    const CHUNK_SIZE = 50;
-    const chunkIndex = Math.floor(((page_number - 1) * page_size) / CHUNK_SIZE);
-    const offset = chunkIndex * CHUNK_SIZE;
-
-    const redisService = RedisService.getInstance();
-
-    try {
-      const version =
-        (await redisService.get(
-          `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
-        )) || 1;
-
-      const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version-${version}:chunk-${chunkIndex}`;
-
-      const cachedWishlists = await redisService.get(cacheKey);
-      if (cachedWishlists) {
-        return {
-          data: cachedWishlists,
-          status: 200,
-        };
-      }
-    } catch (cacheError) {
-      console.error("Error retrieving from cache:", cacheError);
+    if (pageNumber < 1 || pageSize < 1) {
+      return new BadRequestResponse("Invalid pagination parameters").generate();
     }
 
-    console.log("Cache miss, fetching from database...");
+    const normalizedPageSize =
+      STANDARD_PAGE_SIZES.find((size) => size >= pageSize) ||
+      STANDARD_PAGE_SIZES[STANDARD_PAGE_SIZES.length - 1];
+    const offset = (pageNumber - 1) * normalizedPageSize;
+
+    const redisService = RedisService.getInstance();
+    const version =
+      (await redisService.get(
+        `user-wishlists:${tenantId}:${user.id}:version`
+      )) || 1;
+    const cacheKey = `user-wishlists:${tenantId}:${user.id}:v${version}:p${pageNumber}:s${normalizedPageSize}`;
+
+    const cached = await redisService.get(cacheKey).catch((err) => {
+      console.error("Cache lookup error:", err);
+      return null;
+    });
+    if (cached) {
+      return { status: 200, data: { wishlists: cached } };
+    }
+
     const wishlists = await getAllUserWishlist(
-      SERVER_TENANT_ID,
+      tenantId,
       user.id,
       normalizedPageSize,
       offset
     );
 
-    try {
-      const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${
-        user.id
-      }:version-${1}:chunk-${chunkIndex}`;
-      await redisService.set(cacheKey, wishlists, 60 * 60 * 24);
-    } catch (cacheError) {
-      console.error("Error storing wishlists in cache:", cacheError);
-    }
+    redisService
+      .set(cacheKey, wishlists, CACHE_TTL_SECONDS)
+      .catch((err) => console.error("Cache set error:", err));
 
-    return {
-      data: wishlists,
-      status: 200,
-    };
+    return { status: 200, data: { wishlists } };
   } catch (err: any) {
-    return new InternalServerErrorResponse(err).generate();
+    return new InternalServerErrorResponse(err.message).generate();
   }
 };

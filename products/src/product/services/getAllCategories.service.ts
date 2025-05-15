@@ -14,14 +14,19 @@ export const getAllCategoriesService = async (
       ).generate();
     }
 
-    const limit = pageSize;
-    const offset = (pageNumber - 1) * pageSize;
+    const standardPageSizes = [10, 25, 50, 100];
+    const normalizedPageSize =
+      standardPageSizes.find((size) => size >= pageSize) ||
+      standardPageSizes[standardPageSizes.length - 1];
 
+    const CHUNK_SIZE = 50;
+    const chunkIndex = Math.floor((pageNumber - 1) * pageSize / CHUNK_SIZE);
+    
     const redisService = RedisService.getInstance();
 
     const version =
       (await redisService.get(`categories:${SERVER_TENANT_ID}:version`)) || 1;
-    const cacheKey = `categories:${SERVER_TENANT_ID}:version-${version}:limit-${limit}:offset-${offset}`;
+    const cacheKey = `categories:${SERVER_TENANT_ID}:version-${version}:chunk-${chunkIndex}`;
 
     try {
       const cachedCategories = await redisService.get(cacheKey);
@@ -37,11 +42,13 @@ export const getAllCategoriesService = async (
       console.error("Error retrieving from cache:", cacheError);
     }
 
+    const offset = chunkIndex * CHUNK_SIZE;
     const categories = await getAllCategoriesByTenantId(
       SERVER_TENANT_ID,
-      limit,
+      normalizedPageSize,
       offset
     );
+    
     try {
       await redisService.set(cacheKey, categories, 60 * 60 * 24);
     } catch (cacheError) {
@@ -49,7 +56,9 @@ export const getAllCategoriesService = async (
     }
 
     return {
-      data: categories,
+      data: {
+        categories: categories,
+      },
       status: 200,
     };
   } catch (err: any) {

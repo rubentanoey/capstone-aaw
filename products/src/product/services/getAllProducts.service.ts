@@ -14,14 +14,21 @@ export const getAllProductsService = async (
       ).generate();
     }
 
-    const limit = pageSize;
-    const offset = (pageNumber - 1) * pageSize;
+    const standardPageSizes = [10, 25, 50, 100];
+    const normalizedPageSize =
+      standardPageSizes.find((size) => size >= pageSize) ||
+      standardPageSizes[standardPageSizes.length - 1];
+
+    const CHUNK_SIZE = 100;
+    const chunkIndex = Math.floor(
+      (pageNumber - 1) * pageSize / CHUNK_SIZE
+    );
 
     const redisService = RedisService.getInstance();
 
     const version =
       (await redisService.get(`products:${SERVER_TENANT_ID}:version`)) || 1;
-    const cacheKey = `products:${SERVER_TENANT_ID}:version-${version}:limit-${limit}:offset-${offset}`;
+    const cacheKey = `products:${SERVER_TENANT_ID}:version-${version}:chunk-${chunkIndex}`;
 
     try {
       const cachedProducts = await redisService.get(cacheKey);
@@ -37,9 +44,10 @@ export const getAllProductsService = async (
       console.error("Error retrieving from cache:", cacheError);
     }
 
+    const offset = chunkIndex * CHUNK_SIZE;
     const products = await getAllProductsByTenantId(
       SERVER_TENANT_ID,
-      limit,
+      normalizedPageSize,
       offset
     );
     try {

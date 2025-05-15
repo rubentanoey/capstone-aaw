@@ -23,31 +23,51 @@ export const getAllUserWishlistService = async (
       return new BadRequestResponse("User ID is required").generate();
     }
 
-    const limit = page_size;
-    const offset = (page_number - 1) * page_size;
+    const standardPageSizes = [10, 25, 50, 100];
+    const normalizedPageSize =
+      standardPageSizes.find((size) => size >= page_size) ||
+      standardPageSizes[standardPageSizes.length - 1];
+
+    const CHUNK_SIZE = 50;
+    const chunkIndex = Math.floor(((page_number - 1) * page_size) / CHUNK_SIZE);
+    const offset = chunkIndex * CHUNK_SIZE;
 
     const redisService = RedisService.getInstance();
 
-    const version =
-      redisService.get(
-        `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
-      ) || 1;
-    const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version-${version}:limit-${limit}:offset-${offset}`;
-    const cachedWishlists = await redisService.get(cacheKey);
-    if (cachedWishlists) {
-      return {
-        data: cachedWishlists,
-        status: 200,
-      };
+    try {
+      const version =
+        (await redisService.get(
+          `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version`
+        )) || 1;
+
+      const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${user.id}:version-${version}:chunk-${chunkIndex}`;
+
+      const cachedWishlists = await redisService.get(cacheKey);
+      if (cachedWishlists) {
+        return {
+          data: cachedWishlists,
+          status: 200,
+        };
+      }
+    } catch (cacheError) {
+      console.error("Error retrieving from cache:", cacheError);
     }
 
     const wishlists = await getAllUserWishlist(
       SERVER_TENANT_ID,
       user.id,
-      limit,
+      normalizedPageSize,
       offset
     );
-    await redisService.set(cacheKey, wishlists, 60 * 60 * 24);
+
+    try {
+      const cacheKey = `user-wishlists:${SERVER_TENANT_ID}:${
+        user.id
+      }:version-${1}:chunk-${chunkIndex}`;
+      await redisService.set(cacheKey, wishlists, 60 * 60 * 24);
+    } catch (cacheError) {
+      console.error("Error storing wishlists in cache:", cacheError);
+    }
 
     return {
       data: wishlists,
